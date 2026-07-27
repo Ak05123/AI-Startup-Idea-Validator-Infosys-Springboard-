@@ -212,7 +212,7 @@ screenshots/
 
 | Team Member | Role | Responsibilities |
 |-------------|------|------------------|
-| **Koppula Preethi** | **AI System Architect Leader** | Designing the multi-agent AI architecture, LLM workflow, and overall AI system design |
+| **Koppula Preethi** | **AI System Architect** | Designing the multi-agent AI architecture, LLM workflow, and overall AI system design |
 | **Akshat Gupta** | **Frontend Engineer** | Developing the user interface, frontend integration, dashboard, and user experience |
 | **Veeravalli Tejaswi** | **AI Engineer** | Building AI agents, prompt engineering, LLM integration, and AI model optimization |
 | **Vanshika** | **Backend Engineer** | Developing REST APIs, backend services, database integration, and application logic |
