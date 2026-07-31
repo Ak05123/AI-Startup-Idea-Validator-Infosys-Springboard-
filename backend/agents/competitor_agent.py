@@ -1,4 +1,12 @@
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 from app.config import client, MODEL_NAME
+
+
+
 
 class CompetitorAgent:
 

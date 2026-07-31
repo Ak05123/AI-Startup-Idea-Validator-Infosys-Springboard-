@@ -1,4 +1,8 @@
-from orchestrator import Coordinator
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+from app.orchestrator import Coordinator
 
 
 if __name__ == "__main__":
@@ -20,3 +24,9 @@ if __name__ == "__main__":
     print("==============================")
 
     print(result["market_analysis"])
+
+    print("\n==============================")
+    print("SWOT AND RISK ANALYSIS")
+    print("==============================")
+
+    print(result["swot_analysis"])
