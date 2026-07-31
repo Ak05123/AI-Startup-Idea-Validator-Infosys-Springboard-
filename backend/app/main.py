@@ -1,38 +1,193 @@
 import sys
 from pathlib import Path
 
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-from app.orchestrator import Coordinator
 
+# ==================================================
+# PATH SETUP
+# ==================================================
+
+sys.path.append(
+    str(Path(__file__).resolve().parent.parent)
+)
+
+
+# ==================================================
+# IMPORT
+# ==================================================
+
+from app.pipeline import StartupValidationPipeline
+
+
+# ==================================================
+# MAIN
+# ==================================================
 
 if __name__ == "__main__":
 
-    coordinator = Coordinator()
+    pipeline = StartupValidationPipeline()
 
-    idea = input("Enter startup idea: ")
+    idea = input(
+        "Enter startup idea: "
+    ).strip()
 
-    result = coordinator.analyze_startup(idea)
+    if not idea:
 
-    print("\n==============================")
-    print("COMPETITOR ANALYSIS")
-    print("==============================")
+        print(
+            "Startup idea cannot be empty."
+        )
 
-    print(result["competitors"])
+        sys.exit(1)
 
-    print("\n==============================")
-    print("MARKET ANALYSIS")
-    print("==============================")
 
-    print(result["market_analysis"])
+    # ==================================================
+    # RUN COMPLETE PIPELINE
+    # ==================================================
 
-    print("\n==============================")
-    print("SWOT AND RISK ANALYSIS")
-    print("==============================")
+    try:
 
-    print(result["swot_analysis"])
+        result = pipeline.run(idea)
 
-    print("\n==============================")
-    print("MVP RECOMMENDATION")
-    print("==============================")
 
-    print(result["mvp_recommendation"])
+        # ==================================================
+        # COMPETITOR
+        # ==================================================
+
+        print(
+            "\n=============================="
+        )
+
+        print(
+            "COMPETITOR ANALYSIS"
+        )
+
+        print(
+            "=============================="
+        )
+
+        print(
+            result["competitors"]
+        )
+
+
+        # ==================================================
+        # MARKET
+        # ==================================================
+
+        print(
+            "\n=============================="
+        )
+
+        print(
+            "MARKET ANALYSIS"
+        )
+
+        print(
+            "=============================="
+        )
+
+        print(
+            result["market_analysis"]
+        )
+
+
+        # ==================================================
+        # SWOT
+        # ==================================================
+
+        print(
+            "\n=============================="
+        )
+
+        print(
+            "SWOT AND RISK ANALYSIS"
+        )
+
+        print(
+            "=============================="
+        )
+
+        print(
+            result["swot_analysis"]
+        )
+
+
+        # ==================================================
+        # MVP
+        # ==================================================
+
+        print(
+            "\n=============================="
+        )
+
+        print(
+            "MVP RECOMMENDATION"
+        )
+
+        print(
+            "=============================="
+        )
+
+        print(
+            result["mvp_recommendation"]
+        )
+
+
+        # ==================================================
+        # GTM
+        # ==================================================
+
+        print(
+            "\n=============================="
+        )
+
+        print(
+            "GTM STRATEGY"
+        )
+
+        print(
+            "=============================="
+        )
+
+        print(
+            result["gtm_strategy"]
+        )
+
+
+        # ==================================================
+        # FINAL REPORT
+        # ==================================================
+
+        print(
+            "\n=============================="
+        )
+
+        print(
+            "FINAL VALIDATION REPORT"
+        )
+
+        print(
+            "=============================="
+        )
+
+        print(
+            result["report"]
+        )
+
+
+    except Exception as error:
+
+        print(
+            "\n=============================="
+        )
+
+        print(
+            "STARTUP VALIDATION ERROR"
+        )
+
+        print(
+            "=============================="
+        )
+
+        print(
+            error
+        )
