@@ -1,30 +1,58 @@
+
+
 import sys
 from pathlib import Path
 
-sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+# ==================================================
+# PATH SETUP
+# ==================================================
+
+sys.path.append(
+    str(Path(__file__).resolve().parent.parent)
+)
 
 
+# ==================================================
+# IMPORT MODEL
+# ==================================================
+
+from app.config import model
 
 
-from app.config import client, MODEL_NAME
+# ==================================================
+# MARKET ANALYSIS AGENT
+# ==================================================
 
 class MarketAnalysisAgent:
 
     def __init__(self):
-        self.client = client
+        self.model = model
 
-    def analyze(self, idea, search_results):
+    def analyze(
+        self,
+        idea,
+        search_results
+    ):
 
+        # --------------------------------------------------
         # Convert search results into text
+        # --------------------------------------------------
+
         text = ""
 
         for result in search_results:
-            text += f"""
-Title: {result['title']}
-Description: {result['description']}
-Link: {result['link']}
 
+            text += f"""
+Title: {result.get('title', '')}
+Description: {result.get('description', '')}
+Link: {result.get('link', '')}
 """
+
+
+        # --------------------------------------------------
+        # Prompt
+        # --------------------------------------------------
 
         prompt = f"""
 You are an AI Market Analysis Agent.
@@ -32,13 +60,12 @@ You are an AI Market Analysis Agent.
 Startup Idea:
 {idea}
 
-Below are DuckDuckGo search results.
-
+Web Search Results:
 {text}
 
-Analyze the startup market and return ONLY the following information.
+Analyze the startup market.
 
-Return ONLY valid JSON.
+Return ONLY valid JSON in exactly this structure:
 
 {{
     "industry": "",
@@ -53,46 +80,31 @@ Return ONLY valid JSON.
 Rules:
 
 1. Identify the industry.
-2. Estimate the market size if available.
-3. Identify the market growth rate if available.
-4. List target customers.
-5. List current market trends.
-6. List business opportunities.
-7. List major market challenges.
-8. Do not explain anything.
-9. Return only JSON.
+2. Identify market size if reliable information is available.
+3. Identify growth rate if reliable information is available.
+4. Identify target customers.
+5. Identify current market trends.
+6. Identify business opportunities.
+7. Identify major market challenges.
+8. Do not invent specific statistics.
+9. If reliable information is unavailable, say "Not available".
+10. Return ONLY JSON.
 """
 
-        print("\nSending Market Analysis to Gemini...\n")
+
+        # --------------------------------------------------
+        # Gemini
+        # --------------------------------------------------
 
         try:
 
-            response = self.client.models.generate_content(
-                model=MODEL_NAME,
-                contents=prompt
-            )
+            response = self.model.invoke(prompt)
 
-            return response.text
+            return response.content
 
         except Exception as e:
 
-            print("\nGemini Error:")
+            print("\n[Market Analysis Error]")
             print(e)
 
             return "{}"
-if __name__ == "__main__":
-
-    from web_search_agent import WebSearchAgent
-
-    startup = input("Enter startup idea: ")
-
-    web = WebSearchAgent()
-
-    search_results = web.search(startup)
-
-    agent = MarketAnalysisAgent()
-
-    result = agent.analyze(startup, search_results)
-
-    print("\nMarket Analysis:\n")
-    print(result)

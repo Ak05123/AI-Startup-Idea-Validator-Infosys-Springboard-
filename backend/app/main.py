@@ -30,3 +30,9 @@ if __name__ == "__main__":
     print("==============================")
 
     print(result["swot_analysis"])
+
+    print("\n==============================")
+    print("MVP RECOMMENDATION")
+    print("==============================")
+
+    print(result["mvp_recommendation"])
