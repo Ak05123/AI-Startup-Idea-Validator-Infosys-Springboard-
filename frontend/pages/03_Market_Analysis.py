@@ -1,4 +1,4 @@
-"""Market Analysis - Dynamic market intelligence using the submitted startup idea."""
+"""Market Analysis - Displays results from the backend market_analysis_agent.py."""
 import streamlit as st
 from pathlib import Path
 st.set_page_config(page_title="Market Analysis", page_icon="📈", layout="wide", initial_sidebar_state="expanded")
@@ -10,12 +10,9 @@ from utils.helpers import init_session_state
 init_session_state()
 from components.sidebar import render_sidebar
 render_sidebar()
-from utils.page_utils import render_breadcrumb, render_section, render_table, render_page_footer, navigate_to
-from components.charts import create_market_size_chart, create_growth_chart, create_market_segment_chart, create_revenue_projection_chart
-from components.metrics import render_metric_row
-from utils.helpers import get_market_data
+from utils.page_utils import render_breadcrumb, render_section, render_page_footer, navigate_to
+from utils.backend_client import parse_json_response
 
-startup_name = st.session_state.get("startup_name", "")
 startup_idea = st.session_state.get("startup_idea", "")
 industry = st.session_state.get("industry", "")
 
@@ -33,7 +30,7 @@ st.markdown(f"""
     border:1px solid rgba(0,102,255,0.2);border-radius:16px;padding:1.25rem;margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
         <span style="font-size:1.5rem;">💡</span>
-        <span style="font-weight:700;font-size:1.1rem;">{startup_name or "Startup Idea"}</span>
+        <span style="font-weight:700;font-size:1.1rem;">Startup Idea</span>
         <span style="color:rgba(255,255,255,0.4);">|</span>
         <span style="color:#4d94ff;">{industry or "N/A"}</span>
         <span style="color:rgba(255,255,255,0.4);">|</span>
@@ -42,52 +39,64 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-data = get_market_data()
-overview = data.get("market_overview", {})
-segments = data.get("market_segments", [])
-trends = data.get("industry_trends", {})
-revenue = data.get("revenue_projection", {})
+# Get backend response
+backend_response = st.session_state.get("backend_response")
+if not backend_response:
+    st.warning("⚠️ No analysis results found. Please run the validation from the Web Search page first.")
+    if st.button("🌐 Go to Web Search", use_container_width=True):
+        navigate_to("02_Web_Search_Agent.py")
+    st.stop()
 
-# Store market data in session state for downstream pages
-st.session_state["market_data"] = data
-st.session_state["market_analysis_done"] = True
+# Parse market analysis from backend
+market_raw = backend_response.get("market_analysis", "{}")
+market = parse_json_response(market_raw)
 
-render_section("📊 Key Market Metrics", f"Critical indicators for {industry or 'your market'}")
-metrics = [
-    ("TAM", overview.get("total_addressable_market","N/A"), "22.4% CAGR", "🌍"),
-    ("SAM", overview.get("serviceable_addressable_market","N/A"), "Growing", "🎯"),
-    ("SOM", overview.get("serviceable_obtainable_market","N/A"), "Achievable", "✅"),
-    ("Growth Rate", overview.get("market_growth_rate","N/A"), "High", "📈")
-]
-render_metric_row(metrics)
+if market.get("raw") is not None:
+    st.info("Market analysis data is not available in structured format.")
+    st.markdown(f'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem;font-size:0.9rem;color:rgba(255,255,255,0.7);line-height:1.7;">{market.get("raw", "")}</div>', unsafe_allow_html=True)
+else:
+    # Key Market Metrics
+    render_section("📊 Key Market Metrics", f"Critical indicators for {industry or 'your market'}")
+    col1, col2, col3, col4 = st.columns(4)
+    metrics = [
+        ("🌍", "Industry", market.get("industry", "N/A")),
+        ("📈", "Market Size", market.get("market_size", "N/A")),
+        ("🚀", "Growth Rate", market.get("growth_rate", "N/A")),
+        ("🎯", "Target Customers", str(len(market.get("target_customers", []))) + " segments"),
+    ]
+    for i, (icon, label, value) in enumerate(metrics):
+        with [col1, col2, col3, col4][i]:
+            st.markdown(f'<div style="text-align:center;padding:1.25rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;"><div style="font-size:1.5rem;">{icon}</div><div style="font-size:1.25rem;font-weight:700;color:#4d94ff;">{value}</div><div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">{label}</div></div>', unsafe_allow_html=True)
 
-render_section("📈 Market Size & Growth", "Visual analysis")
-col1, col2 = st.columns(2)
-with col1:
-    st.plotly_chart(create_market_size_chart(trends.get("years",[]), trends.get("market_sizes",[]), "Market Size ($B)"), use_container_width=True)
-with col2:
-    st.plotly_chart(create_growth_chart(trends.get("years",[]), trends.get("ai_adoption_rate",[]), "AI Adoption Rate (%)"), use_container_width=True)
+    # Target Customers
+    target_customers = market.get("target_customers", [])
+    if target_customers:
+        render_section("🎯 Target Customers", "Identified customer segments")
+        cols = st.columns(2)
+        for i, customer in enumerate(target_customers):
+            with cols[i % 2]:
+                st.markdown(f'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1rem;margin-bottom:0.5rem;"><div style="font-size:0.9rem;font-weight:600;">👥 {customer}</div></div>', unsafe_allow_html=True)
 
-render_section("🎯 Target Audience & Segments", "Market breakdown")
-col1, col2 = st.columns([3,2])
-with col1:
-    st.plotly_chart(create_market_segment_chart(segments), use_container_width=True)
-with col2:
-    for s in segments:
-        st.markdown(f'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.75rem;margin-bottom:0.5rem;"><div style="display:flex;justify-content:space-between;"><div><div style="font-weight:600;font-size:0.9rem;">{s.get("name","")}</div><div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">{", ".join(s.get("customers",[])[:2])}</div></div><div style="text-align:right;"><div style="font-size:1rem;font-weight:700;color:#4d94ff;">{s.get("size","")}</div><div style="font-size:0.75rem;color:#00d4aa;">📈 {s.get("growth","")}</div></div></div></div>', unsafe_allow_html=True)
+    # Market Trends
+    market_trends = market.get("market_trends", [])
+    if market_trends:
+        render_section("📈 Market Trends", "Current industry trends")
+        for trend in market_trends:
+            st.markdown(f'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;"><span style="font-size:1.25rem;">📈</span><span style="font-size:0.9rem;color:rgba(255,255,255,0.7);">{trend}</span></div>', unsafe_allow_html=True)
 
-render_section("💰 Revenue Forecast", "5-year projection")
-st.plotly_chart(create_revenue_projection_chart(revenue), use_container_width=True)
+    # Opportunities
+    opportunities = market.get("opportunities", [])
+    if opportunities:
+        render_section("🚀 Opportunities", "Business opportunities identified")
+        for opp in opportunities:
+            st.markdown(f'<div style="background:rgba(0,212,170,0.05);border:1px solid rgba(0,212,170,0.15);border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;"><span style="font-size:1.25rem;">🚀</span><span style="font-size:0.9rem;color:rgba(255,255,255,0.7);">{opp}</span></div>', unsafe_allow_html=True)
 
-render_section("📋 Market Concepts Explained", "Key terminology")
-render_table(["Term", "Definition", "Current Value"], [
-    ["TAM", "Total Addressable Market - total revenue opportunity", overview.get("total_addressable_market","N/A")],
-    ["SAM", "Serviceable Addressable Market - segment you can reach", overview.get("serviceable_addressable_market","N/A")],
-    ["SOM", "Serviceable Obtainable Market - what you can capture", overview.get("serviceable_obtainable_market","N/A")],
-    ["CAGR", "Compound Annual Growth Rate over 5 years", overview.get("cagr_5year","N/A")],
-    ["Market Maturity", "Current stage of market development", overview.get("market_maturity","N/A")],
-    ["Growth Rate", "Annual market growth percentage", overview.get("market_growth_rate","N/A")],
-])
+    # Challenges
+    challenges = market.get("challenges", [])
+    if challenges:
+        render_section("⚠️ Challenges", "Market challenges to address")
+        for challenge in challenges:
+            st.markdown(f'<div style="background:rgba(255,107,107,0.05);border:1px solid rgba(255,107,107,0.15);border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;"><span style="font-size:1.25rem;">⚠️</span><span style="font-size:0.9rem;color:rgba(255,255,255,0.7);">{challenge}</span></div>', unsafe_allow_html=True)
 
 # Navigation
 render_section("▶️ Continue Analysis", "Proceed to the next analysis stages")

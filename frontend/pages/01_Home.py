@@ -177,13 +177,14 @@ with col2:
         if not startup_idea.strip():
             st.warning("Please enter your startup idea.")
         else:
+            # Store in session state
             st.session_state["startup_idea"] = startup_idea.strip()
             st.session_state["industry"] = industry
             st.session_state["country"] = country
-            st.session_state["target_audience"] = ""
             st.session_state["budget"] = budget
             st.session_state["keywords"] = [k.strip() for k in keywords_input.split(",") if k.strip()]
             st.session_state["form_validated"] = True
+            st.session_state["pipeline_status"] = "running"
             st.switch_page("pages/02_Web_Search_Agent.py")
 
 st.markdown('<hr style="border-color:rgba(255,255,255,0.08);margin:2rem 0;">', unsafe_allow_html=True)

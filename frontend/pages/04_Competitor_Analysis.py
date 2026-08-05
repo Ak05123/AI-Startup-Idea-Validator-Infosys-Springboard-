@@ -1,4 +1,4 @@
-"""Competitor Analysis - Dynamic competitive landscape using the submitted startup idea."""
+"""Competitor Analysis - Displays results from the backend competitor_agent.py."""
 import streamlit as st
 from pathlib import Path
 st.set_page_config(page_title="Competitor Analysis", page_icon="🏆", layout="wide", initial_sidebar_state="expanded")
@@ -10,12 +10,9 @@ from utils.helpers import init_session_state
 init_session_state()
 from components.sidebar import render_sidebar
 render_sidebar()
-from utils.page_utils import render_breadcrumb, render_section, render_table, render_page_footer, navigate_to
-from components.charts import create_competitor_share_chart
-from components.cards import render_competitor_card
-from utils.helpers import get_competitor_data
+from utils.page_utils import render_breadcrumb, render_section, render_page_footer, navigate_to
+from utils.backend_client import parse_list_response
 
-startup_name = st.session_state.get("startup_name", "")
 startup_idea = st.session_state.get("startup_idea", "")
 industry = st.session_state.get("industry", "")
 
@@ -33,7 +30,7 @@ st.markdown(f"""
     border:1px solid rgba(0,102,255,0.2);border-radius:16px;padding:1.25rem;margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
         <span style="font-size:1.5rem;">💡</span>
-        <span style="font-weight:700;font-size:1.1rem;">{startup_name or "Startup Idea"}</span>
+        <span style="font-weight:700;font-size:1.1rem;">Startup Idea</span>
         <span style="color:rgba(255,255,255,0.4);">|</span>
         <span style="color:#4d94ff;">{industry or "N/A"}</span>
         <span style="color:rgba(255,255,255,0.4);">|</span>
@@ -42,28 +39,35 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-data = get_competitor_data()
-direct = data.get("direct_competitors", [])
-indirect = data.get("indirect_competitors", [])
+# Get backend response
+backend_response = st.session_state.get("backend_response")
+if not backend_response:
+    st.warning("⚠️ No analysis results found. Please run the validation from the Web Search page first.")
+    if st.button("🌐 Go to Web Search", use_container_width=True):
+        navigate_to("02_Web_Search_Agent.py")
+    st.stop()
 
-# Store competitor data in session state for downstream pages
-st.session_state["competitor_data"] = data
-st.session_state["competitor_analysis_done"] = True
+# Parse competitors from backend
+competitors_raw = backend_response.get("competitors", [])
+competitors = parse_list_response(competitors_raw)
 
-render_section("📊 Market Share Distribution", f"Competitive landscape for {industry or 'your market'}")
-col1, col2 = st.columns(2)
-with col1:
-    st.plotly_chart(create_competitor_share_chart(direct), use_container_width=True)
-with col2:
-    st.markdown("""<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem;height:100%;"><div style="font-weight:600;margin-bottom:0.75rem;">📊 Key Insights</div><ul style="list-style:none;padding:0;"><li style="padding:0.4rem 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="color:#0066ff;">●</span> PitchBook leads with 28% market share</li><li style="padding:0.4rem 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="color:#4d94ff;">●</span> CB Insights follows with 22% share</li><li style="padding:0.4rem 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="color:#00d4aa;">●</span> Top 3 players control 68% of market</li><li style="padding:0.4rem 0;"><span style="color:#ffd93d;">●</span> Niche players hold remaining 32%</li></ul></div>""", unsafe_allow_html=True)
+if not competitors:
+    st.info("No competitors identified by the backend.")
+else:
+    # Competitors List
+    render_section("🎯 Competitors Identified", f"Companies identified by the Competitor Agent")
+    for comp in competitors:
+        st.markdown(f'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;"><span style="font-size:1.5rem;">🏢</span><div><div style="font-weight:600;font-size:0.95rem;">{comp}</div><div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">Direct competitor</div></div></div>', unsafe_allow_html=True)
 
-render_section("🎯 Direct Competitors")
-for comp in direct:
-    render_competitor_card(comp)
-
-render_section("📋 Competitor Comparison Table")
-render_table(["Company", "Funding", "Market Share", "Strength", "Threat Level"],
-    [[c.get("name",""), c.get("funding","N/A"), f"{c.get('market_share',0)}%", f"{'⭐'*c.get('strength',0)}", c.get("threat_level","").title()] for c in direct])
+    # Comparison Table
+    render_section("📋 Competitor Comparison", "Identified competitors overview")
+    headers = ["#", "Competitor", "Status"]
+    rows = [[str(i + 1), comp, "Identified"] for i, comp in enumerate(competitors)]
+    header_html = "".join(f'<th style="padding:0.6rem 0.75rem;text-align:left;font-size:0.8rem;color:rgba(255,255,255,0.5);border-bottom:1px solid rgba(255,255,255,0.1);font-weight:500;">{h}</th>' for h in headers)
+    rows_html = ""
+    for row in rows:
+        rows_html += "<tr>" + "".join(f'<td style="padding:0.6rem 0.75rem;font-size:0.85rem;color:rgba(255,255,255,0.7);border-bottom:1px solid rgba(255,255,255,0.05);">{c}</td>' for c in row) + "</tr>"
+    st.markdown(f'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:0.75rem;margin:0.75rem 0;overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">{header_html}{rows_html}</table></div>', unsafe_allow_html=True)
 
 # Navigation
 render_section("▶️ Continue Analysis", "Proceed to the next analysis stages")

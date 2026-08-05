@@ -1,5 +1,6 @@
-"""Final Report - Dynamic validation report using the submitted startup idea and analysis data."""
+"""Final Report - Displays results from the backend report_agent.py."""
 import streamlit as st
+import json
 from pathlib import Path
 st.set_page_config(page_title="Final Report", page_icon="📄", layout="wide", initial_sidebar_state="expanded")
 css_path = Path(__file__).parent.parent / "styles" / "main.css"
@@ -10,15 +11,12 @@ from utils.helpers import init_session_state
 init_session_state()
 from components.sidebar import render_sidebar
 render_sidebar()
-from utils.page_utils import render_breadcrumb, render_section, render_table, render_faqs, render_summary, render_page_footer, navigate_to
-from utils.helpers import get_search_results, get_competitor_data, get_market_data
-import json
+from utils.page_utils import render_breadcrumb, render_section, render_page_footer, navigate_to
+from utils.backend_client import parse_json_response
 
-startup_name = st.session_state.get("startup_name", "")
 startup_idea = st.session_state.get("startup_idea", "")
 industry = st.session_state.get("industry", "")
 country = st.session_state.get("country", "")
-stage = st.session_state.get("stage", "")
 budget = st.session_state.get("budget", 0)
 keywords = st.session_state.get("keywords", [])
 
@@ -30,141 +28,157 @@ if not startup_idea:
 
 render_breadcrumb("📄 Final Report")
 
-# Load data from session state or fallback to mock data
-search_data = st.session_state.get("search_results") or get_search_results()
-competitor_data = st.session_state.get("competitor_data") or get_competitor_data()
-market_data = st.session_state.get("market_data") or get_market_data()
+# Get backend response
+backend_response = st.session_state.get("backend_response")
+if not backend_response:
+    st.warning("⚠️ No analysis results found. Please run the validation from the Web Search page first.")
+    if st.button("🌐 Go to Web Search", use_container_width=True):
+        navigate_to("02_Web_Search_Agent.py")
+    st.stop()
 
-stats = search_data.get("market_statistics", {})
-swot = market_data.get("swot", {})
-overview = market_data.get("market_overview", {})
-competitors = competitor_data.get("direct_competitors", [])
+# Parse report from backend
+report_raw = backend_response.get("report", "{}")
+report = parse_json_response(report_raw)
 
 # Report Header
 st.markdown(f"""
 <div style="text-align:center;padding:2.5rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;margin-bottom:1.5rem;">
     <div style="font-size:3rem;margin-bottom:0.75rem;">📄</div>
     <div style="font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#fff,#4d94ff,#00d4aa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">AI Startup Idea Validator</div>
-    <div style="font-size:1.1rem;font-weight:600;color:#4d94ff;margin-top:0.5rem;">{startup_name or "Startup Idea"}</div>
-    <div style="font-size:0.9rem;color:rgba(255,255,255,0.5);margin-top:0.25rem;">{industry or "N/A"} | {country or "N/A"} | {stage or "N/A"}</div>
+    <div style="font-size:1.1rem;font-weight:600;color:#4d94ff;margin-top:0.5rem;">Startup Idea</div>
+    <div style="font-size:0.9rem;color:rgba(255,255,255,0.5);margin-top:0.25rem;">{industry or "N/A"} | {country or "N/A"}</div>
 </div>
 """, unsafe_allow_html=True)
 
-# Executive Summary
-render_section("📋 Executive Summary")
-st.markdown(f"""
-<div style="font-size:0.95rem;color:rgba(255,255,255,0.7);line-height:1.8;">
-<p>This report presents a comprehensive validation analysis for <strong>{startup_name or 'your startup idea'}</strong> in the <strong>{industry or 'target'}</strong> industry.</p>
-<p>Based on research across {len(stats.get('sources_used',[]))} sources.</p>
-<p><strong>Startup Idea:</strong> {startup_idea}</p>
-<p>The market is projected to reach <strong>{overview.get('total_addressable_market','$8.5B')} by 2028</strong>, growing at a <strong>{overview.get('market_growth_rate','22.4%')} CAGR</strong>.</p>
-</div>
-""", unsafe_allow_html=True)
+if report.get("raw") is not None:
+    st.info("Report data is not available in structured format.")
+    st.markdown(f'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem;font-size:0.9rem;color:rgba(255,255,255,0.7);line-height:1.7;">{report.get("raw", "")}</div>', unsafe_allow_html=True)
+else:
+    # Executive Summary
+    render_section("📋 Executive Summary")
+    st.markdown(f"""
+    <div style="font-size:0.95rem;color:rgba(255,255,255,0.7);line-height:1.8;">
+    <p>This report presents a comprehensive validation analysis for your startup idea in the <strong>{industry or 'target'}</strong> industry.</p>
+    <p><strong>Startup Idea:</strong> {startup_idea}</p>
+    <p><strong>Final Verdict:</strong> <span style="color:#00d4aa;font-weight:700;">{report.get("final_verdict", "N/A")}</span></p>
+    <p><strong>Risk Level:</strong> <span style="color:#ffd93d;font-weight:700;">{report.get("risk_level", "N/A")}</span></p>
+    </div>
+    """, unsafe_allow_html=True)
 
-# Scores
-render_section("📊 Validation Scores")
-cols = st.columns(4)
-scores = [("Market Score", "85/100", "High potential", "#4d94ff"), ("Competition Score", "72/100", "Moderate competition", "#00d4aa"), ("Investment Score", "88/100", "Investor ready", "#ffd93d"), ("Risk Score", "65/100", "Manageable risks", "#ff6b6b")]
-for i, (label, score, desc, color) in enumerate(scores):
-    with cols[i]:
-        st.markdown(f'<div style="text-align:center;padding:1.25rem;background:rgba(255,255,255,0.03);border:1px solid {color}33;border-radius:12px;"><div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">{label}</div><div style="font-size:2rem;font-weight:700;color:{color};margin:0.25rem 0;">{score}</div><div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">{desc}</div></div>', unsafe_allow_html=True)
+    # Scores
+    render_section("📊 Validation Scores")
+    scorecard = report.get("scorecard", {})
+    overall_score = report.get("overall_validation_score", 0)
+    confidence = report.get("validation_confidence", 0)
+    viability = report.get("viability_estimate_percent", 0)
 
-# Market Analysis Summary
-render_section("📈 Market Analysis Summary")
-st.markdown(f"""<div style="font-size:0.95rem;color:rgba(255,255,255,0.7);line-height:1.8;"><table style="width:100%;border-collapse:collapse;">
-<tr><td style="padding:0.5rem;border-bottom:1px solid rgba(255,255,255,0.05);"><strong>TAM</strong></td><td style="padding:0.5rem;border-bottom:1px solid rgba(255,255,255,0.05);">{overview.get('total_addressable_market','N/A')}</td></tr>
-<tr><td style="padding:0.5rem;border-bottom:1px solid rgba(255,255,255,0.05);"><strong>SAM</strong></td><td style="padding:0.5rem;border-bottom:1px solid rgba(255,255,255,0.05);">{overview.get('serviceable_addressable_market','N/A')}</td></tr>
-<tr><td style="padding:0.5rem;border-bottom:1px solid rgba(255,255,255,0.05);"><strong>Growth Rate</strong></td><td style="padding:0.5rem;border-bottom:1px solid rgba(255,255,255,0.05);">{overview.get('market_growth_rate','N/A')}</td></tr>
-<tr><td style="padding:0.5rem;"><strong>CAGR</strong></td><td style="padding:0.5rem;">{overview.get('cagr_5year','N/A')}</td></tr>
-</table></div>""", unsafe_allow_html=True)
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.markdown(f'<div style="text-align:center;padding:1.25rem;background:rgba(255,255,255,0.03);border:1px solid rgba(77,148,255,0.3);border-radius:12px;"><div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">Overall Score</div><div style="font-size:2rem;font-weight:700;color:#4d94ff;margin:0.25rem 0;">{overall_score}/100</div><div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">Weighted validation</div></div>', unsafe_allow_html=True)
+    with col2:
+        st.markdown(f'<div style="text-align:center;padding:1.25rem;background:rgba(255,255,255,0.03);border:1px solid rgba(0,212,170,0.3);border-radius:12px;"><div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">Confidence</div><div style="font-size:2rem;font-weight:700;color:#00d4aa;margin:0.25rem 0;">{confidence}%</div><div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">Research confidence</div></div>', unsafe_allow_html=True)
+    with col3:
+        st.markdown(f'<div style="text-align:center;padding:1.25rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,217,61,0.3);border-radius:12px;"><div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">Viability</div><div style="font-size:2rem;font-weight:700;color:#ffd93d;margin:0.25rem 0;">{viability}%</div><div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">Model-based estimate</div></div>', unsafe_allow_html=True)
+    with col4:
+        risk_color = "#00d4aa" if report.get("risk_level") == "Low" else "#ffd93d" if report.get("risk_level") == "Medium" else "#ff6b6b"
+        st.markdown(f'<div style="text-align:center;padding:1.25rem;background:rgba(255,255,255,0.03);border:1px solid {risk_color}33;border-radius:12px;"><div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">Risk Level</div><div style="font-size:1.5rem;font-weight:700;color:{risk_color};margin:0.25rem 0;">{report.get("risk_level", "N/A")}</div><div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">Overall risk</div></div>', unsafe_allow_html=True)
 
-# Competitor Summary
-render_section("🏆 Competitor Summary")
-for comp in competitors[:3]:
-    st.markdown(f'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.75rem;margin-bottom:0.5rem;"><div style="display:flex;justify-content:space-between;"><div><div style="font-weight:600;font-size:0.9rem;">{comp.get("name","")}</div><div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">{comp.get("description","")}</div></div><div style="text-align:right;"><div style="font-size:0.85rem;font-weight:600;color:#4d94ff;">{comp.get("market_share",0)}% share</div><div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">💰 {comp.get("funding","N/A")}</div></div></div></div>', unsafe_allow_html=True)
+    # Scorecard Details
+    if scorecard:
+        render_section("📊 Scorecard Breakdown", "Detailed scoring by category")
+        score_items = [
+            ("Market Demand", scorecard.get("market_demand", {}), "#4d94ff"),
+            ("Competitive Position", scorecard.get("competitive_position", {}), "#00d4aa"),
+            ("Problem Solution Fit", scorecard.get("problem_solution_fit", {}), "#ffd93d"),
+            ("MVP Feasibility", scorecard.get("mvp_feasibility", {}), "#ff6b6b"),
+            ("Differentiation", scorecard.get("differentiation", {}), "#4d94ff"),
+            ("GTM Readiness", scorecard.get("gtm_readiness", {}), "#00d4aa"),
+            ("Risk Management", scorecard.get("risk_management", {}), "#ffd93d"),
+        ]
+        for title, data, color in score_items:
+            score = data.get("score", 0) if isinstance(data, dict) else 0
+            reason = data.get("reason", "") if isinstance(data, dict) else ""
+            st.markdown(f'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1rem;margin-bottom:0.5rem;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;"><span style="font-weight:600;font-size:0.9rem;">{title}</span><span style="font-size:1.1rem;font-weight:700;color:{color};">{score}/100</span></div><div style="width:100%;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;"><div style="width:{score}%;height:100%;background:{color};border-radius:3px;"></div></div><div style="font-size:0.8rem;color:rgba(255,255,255,0.5);margin-top:0.5rem;">{reason}</div></div>', unsafe_allow_html=True)
 
-# SWOT
-render_section("⚠️ SWOT Analysis")
-col1, col2 = st.columns(2)
-with col1:
-    strengths = "".join(f'<li style="padding:0.25rem 0;font-size:0.85rem;color:rgba(255,255,255,0.7);">▸ {s}</li>' for s in swot.get("strengths",[]))
-    st.markdown(f'<div style="background:rgba(0,212,170,0.05);border:1px solid rgba(0,212,170,0.15);border-radius:10px;padding:1rem;margin-bottom:0.5rem;"><div style="font-weight:600;color:#00d4aa;margin-bottom:0.5rem;">💪 Strengths</div><ul style="list-style:none;padding:0;">{strengths}</ul></div>', unsafe_allow_html=True)
-    opportunities = "".join(f'<li style="padding:0.25rem 0;font-size:0.85rem;color:rgba(255,255,255,0.7);">▸ {o}</li>' for o in swot.get("opportunities",[]))
-    st.markdown(f'<div style="background:rgba(77,148,255,0.05);border:1px solid rgba(77,148,255,0.15);border-radius:10px;padding:1rem;"><div style="font-weight:600;color:#4d94ff;margin-bottom:0.5rem;">🚀 Opportunities</div><ul style="list-style:none;padding:0;">{opportunities}</ul></div>', unsafe_allow_html=True)
-with col2:
-    weaknesses = "".join(f'<li style="padding:0.25rem 0;font-size:0.85rem;color:rgba(255,255,255,0.7);">▸ {w}</li>' for w in swot.get("weaknesses",[]))
-    st.markdown(f'<div style="background:rgba(255,107,107,0.05);border:1px solid rgba(255,107,107,0.15);border-radius:10px;padding:1rem;margin-bottom:0.5rem;"><div style="font-weight:600;color:#ff6b6b;margin-bottom:0.5rem;">⚠️ Weaknesses</div><ul style="list-style:none;padding:0;">{weaknesses}</ul></div>', unsafe_allow_html=True)
-    threats = "".join(f'<li style="padding:0.25rem 0;font-size:0.85rem;color:rgba(255,255,255,0.7);">▸ {t}</li>' for t in swot.get("threats",[]))
-    st.markdown(f'<div style="background:rgba(255,217,61,0.05);border:1px solid rgba(255,217,61,0.15);border-radius:10px;padding:1rem;"><div style="font-weight:600;color:#ffd93d;margin-bottom:0.5rem;">🔥 Threats</div><ul style="list-style:none;padding:0;">{threats}</ul></div>', unsafe_allow_html=True)
+    # Strongest Factors
+    strongest = report.get("strongest_factors", [])
+    if strongest:
+        render_section("💪 Strongest Factors", "Key strengths identified")
+        for factor in strongest:
+            st.markdown(f'<div style="background:rgba(0,212,170,0.05);border:1px solid rgba(0,212,170,0.15);border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;"><span style="font-size:1.25rem;">💪</span><span style="font-size:0.9rem;color:rgba(255,255,255,0.7);">{factor}</span></div>', unsafe_allow_html=True)
 
-# Recommendations
-render_section("💡 Recommendations")
-recommendations = [
-    ("P0", "Develop AI Search Agent", "Multi-source search with DuckDuckGo integration"),
-    ("P0", "Market Analysis Dashboard", "Interactive charts and market intelligence"),
-    ("P1", "Competitor Tracking", "Automated competitor monitoring"),
-    ("P1", "Export & Reporting", "CSV, JSON, PDF downloads"),
-    ("P2", "AI Advisor Chat", "Conversational AI advisory interface"),
-]
-for priority, title, desc in recommendations:
-    color = "#ff6b6b" if priority == "P0" else "#ffd93d" if priority == "P1" else "#4d94ff"
-    st.markdown(f'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.75rem;margin-bottom:0.5rem;border-left:4px solid {color};"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:600;font-size:0.9rem;">{title}</div><div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">{desc}</div></div><span style="background:{color}22;color:{color};padding:2px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;">{priority}</span></div></div>', unsafe_allow_html=True)
+    # Weakest Factors
+    weakest = report.get("weakest_factors", [])
+    if weakest:
+        render_section("⚠️ Weakest Factors", "Areas needing improvement")
+        for factor in weakest:
+            st.markdown(f'<div style="background:rgba(255,107,107,0.05);border:1px solid rgba(255,107,107,0.15);border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;"><span style="font-size:1.25rem;">⚠️</span><span style="font-size:0.9rem;color:rgba(255,255,255,0.7);">{factor}</span></div>', unsafe_allow_html=True)
 
-# Sources
-render_section("📚 Sources")
-sources = stats.get("sources_used", [])
-cols = st.columns(4)
-for i, source in enumerate(sources):
-    with cols[i % 4]:
-        st.markdown(f'<div style="text-align:center;padding:0.75rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;"><div style="font-size:0.85rem;font-weight:500;">{source}</div></div>', unsafe_allow_html=True)
+    # Key Risks
+    key_risks = report.get("key_risks", [])
+    if key_risks:
+        render_section("🔥 Key Risks", "Critical risks to address")
+        for risk in key_risks:
+            st.markdown(f'<div style="background:rgba(255,217,61,0.05);border:1px solid rgba(255,217,61,0.15);border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;"><span style="font-size:1.25rem;">🔥</span><span style="font-size:0.9rem;color:rgba(255,255,255,0.7);">{risk}</span></div>', unsafe_allow_html=True)
+
+    # Next Actions
+    next_actions = report.get("next_actions", [])
+    if next_actions:
+        render_section("✅ Next Actions", "Recommended next steps")
+        for i, action in enumerate(next_actions):
+            st.markdown(f'<div style="background:rgba(77,148,255,0.05);border:1px solid rgba(77,148,255,0.15);border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;"><span style="font-size:1.25rem;color:#4d94ff;font-weight:700;">{i + 1}</span><span style="font-size:0.9rem;color:rgba(255,255,255,0.7);">{action}</span></div>', unsafe_allow_html=True)
+
+    # Final Verdict
+    render_section("🎯 Final Verdict")
+    verdict = report.get("final_verdict", "N/A")
+    verdict_color = "#00d4aa" if verdict in ["Strong Go", "Go"] else "#ffd93d" if verdict == "Proceed with Caution" else "#ff6b6b"
+    st.markdown(f'<div style="background:rgba(0,212,170,0.05);border:1px solid {verdict_color}44;border-radius:16px;padding:1.5rem;margin:1rem 0;text-align:center;"><div style="font-size:2rem;margin-bottom:0.5rem;">🎯</div><div style="font-size:1.5rem;font-weight:800;color:{verdict_color};">{verdict}</div><div style="font-size:0.9rem;color:rgba(255,255,255,0.5);margin-top:0.5rem;">Based on comprehensive multi-agent analysis</div></div>', unsafe_allow_html=True)
 
 # Export
 render_section("📤 Export Report")
 report_data = {
-    "startup_name": startup_name,
     "startup_idea": startup_idea,
     "industry": industry,
     "country": country,
-    "stage": stage,
     "budget": budget,
     "keywords": keywords,
-    "market_analysis": overview,
-    "competitors": [c["name"] for c in competitors],
-    "swot": swot,
-    "recommendations": [r[1] for r in recommendations],
-    "sources": sources,
+    "report": report,
+    "competitors": backend_response.get("competitors", []),
+    "market_analysis": backend_response.get("market_analysis", ""),
+    "swot_analysis": backend_response.get("swot_analysis", ""),
+    "mvp_recommendation": backend_response.get("mvp_recommendation", ""),
+    "gtm_strategy": backend_response.get("gtm_strategy", ""),
 }
 col1, col2, col3 = st.columns(3)
 with col1:
-    st.download_button("📥 Download JSON", data=json.dumps(report_data, indent=2), file_name=f"{startup_name or 'startup'}_validation_report.json", mime="application/json", use_container_width=True)
+    st.download_button("📥 Download JSON", data=json.dumps(report_data, indent=2, default=str), file_name="startup_validation_report.json", mime="application/json", use_container_width=True)
 with col2:
-    md_content = f"""# Validation Report: {startup_name or 'Startup Idea'}
+    md_content = f"""# Startup Validation Report
 
-## Executive Summary
+## Startup Idea
 {startup_idea}
 
-## Market Analysis
-- **TAM:** {overview.get('total_addressable_market', 'N/A')}
-- **SAM:** {overview.get('serviceable_addressable_market', 'N/A')}
-- **Growth Rate:** {overview.get('market_growth_rate', 'N/A')}
-- **CAGR:** {overview.get('cagr_5year', 'N/A')}
+## Industry
+{industry or 'N/A'}
 
-## Competitors
-{chr(10).join(f'- {c["name"]} ({c.get("market_share", 0)}% share)' for c in competitors[:5])}
+## Final Verdict
+{report.get('final_verdict', 'N/A')}
 
-## SWOT
-- **Strengths:** {', '.join(swot.get('strengths', []))}
-- **Weaknesses:** {', '.join(swot.get('weaknesses', []))}
-- **Opportunities:** {', '.join(swot.get('opportunities', []))}
-- **Threats:** {', '.join(swot.get('threats', []))}
+## Risk Level
+{report.get('risk_level', 'N/A')}
+
+## Overall Score
+{report.get('overall_validation_score', 0)}/100
+
+## Next Actions
+{chr(10).join(f'- {action}' for action in report.get('next_actions', []))}
 """
-    st.download_button("📥 Download Markdown", data=md_content, file_name=f"{startup_name or 'startup'}_report.md", mime="text/markdown", use_container_width=True)
+    st.download_button("📥 Download Markdown", data=md_content, file_name="startup_validation_report.md", mime="text/markdown", use_container_width=True)
 with col3:
-    if st.button("🔄 Regenerate Report", use_container_width=True):
-        st.rerun()
-
-render_summary("📋 Final Verdict",
-    f"Based on comprehensive analysis of <strong>{startup_name or 'your startup idea'}</strong> in the <strong>{industry or 'target'}</strong> industry, "
-    f"this startup idea shows strong potential with a market growing at {overview.get('market_growth_rate', '22.4%')}.")
+    if st.button("🔄 Start New Validation", use_container_width=True):
+        st.session_state["backend_response"] = None
+        st.session_state["report"] = None
+        st.session_state["pipeline_status"] = "idle"
+        st.switch_page("pages/01_Home.py")
 
 render_page_footer()

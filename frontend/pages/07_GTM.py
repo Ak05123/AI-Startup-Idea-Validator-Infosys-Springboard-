@@ -1,4 +1,4 @@
-"""GTM Strategy - Go-to-market strategy and launch plan."""
+"""GTM Strategy - Displays results from the backend gtm_strategy_agent.py."""
 import streamlit as st
 from pathlib import Path
 st.set_page_config(page_title="GTM Strategy", page_icon="📢", layout="wide", initial_sidebar_state="expanded")
@@ -10,67 +10,132 @@ from utils.helpers import init_session_state
 init_session_state()
 from components.sidebar import render_sidebar
 render_sidebar()
-from utils.page_utils import render_breadcrumb, render_hero, render_section, render_card, render_workflow, render_tech_badges, render_table, render_advantages, render_challenges, render_faqs, render_summary, render_page_footer
-from utils.helpers import get_market_data
+from utils.page_utils import render_breadcrumb, render_section, render_page_footer, navigate_to
+from utils.backend_client import parse_json_response
+
+startup_idea = st.session_state.get("startup_idea", "")
+industry = st.session_state.get("industry", "")
+
+if not startup_idea:
+    st.warning("⚠️ No startup idea found. Please submit your idea from the Home page first.")
+    if st.button("🏠 Back to Home", use_container_width=True):
+        st.switch_page("pages/01_Home.py")
+    st.stop()
 
 render_breadcrumb("📢 GTM Strategy")
-render_hero("📢", "GTM Strategy", "Go-to-market strategy and launch plan for your startup", "A Go-to-Market (GTM) strategy is a plan that outlines how a company will launch a product to market. It covers target audience, pricing, distribution channels, marketing tactics, and sales strategy. Our AI analyzes market data to recommend the optimal GTM approach.")
 
-data = get_market_data()
-gtm = data.get("gtm_strategy", {})
-channels = gtm.get("channels", [])
-pricing = gtm.get("pricing_tiers", [])
-timeline = gtm.get("launch_timeline", {})
+# Startup info header
+st.markdown(f"""
+<div style="background:linear-gradient(135deg,rgba(0,102,255,0.08),rgba(0,212,170,0.08));
+    border:1px solid rgba(0,102,255,0.2);border-radius:16px;padding:1.25rem;margin-bottom:1rem;">
+    <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+        <span style="font-size:1.5rem;">💡</span>
+        <span style="font-weight:700;font-size:1.1rem;">Startup Idea</span>
+        <span style="color:rgba(255,255,255,0.4);">|</span>
+        <span style="color:#4d94ff;">{industry or "N/A"}</span>
+        <span style="color:rgba(255,255,255,0.4);">|</span>
+        <span style="color:rgba(255,255,255,0.6);font-size:0.9rem;">{startup_idea[:100]}{"..." if len(startup_idea) > 100 else ""}</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-render_section("🔍 What is GTM Strategy?")
-st.markdown("""<div style="font-size:0.95rem;color:rgba(255,255,255,0.7);line-height:1.8;"><p><strong>Go-to-Market (GTM) Strategy</strong> is the comprehensive plan for launching a product to market. It defines who the target customers are, how to reach them, what pricing model to use, and how to position the product against competitors.</p></div>""", unsafe_allow_html=True)
+# Get backend response
+backend_response = st.session_state.get("backend_response")
+if not backend_response:
+    st.warning("⚠️ No analysis results found. Please run the validation from the Web Search page first.")
+    if st.button("🌐 Go to Web Search", use_container_width=True):
+        navigate_to("02_Web_Search_Agent.py")
+    st.stop()
 
-render_section("🎯 Why is it Important?")
-st.markdown("""<div style="font-size:0.95rem;color:rgba(255,255,255,0.7);line-height:1.8;"><p><strong>Focused Launch:</strong> Target the right customers with the right message.</p><p><strong>Efficient Spending:</strong> Allocate marketing budget effectively.</p><p><strong>Faster Adoption:</strong> Accelerate customer acquisition.</p><p><strong>Competitive Positioning:</strong> Differentiate from competitors.</p><p><strong>Revenue Goals:</strong> Clear path to revenue generation.</p></div>""", unsafe_allow_html=True)
+# Parse GTM from backend
+gtm_raw = backend_response.get("gtm_strategy", "{}")
+gtm = parse_json_response(gtm_raw)
 
-render_section("📅 Launch Timeline")
-phases = list(timeline.items())
-phase_icons = ["🔧", "🚀", "📈", "🌱"]
-phase_colors = ["#ffd93d", "#00d4aa", "#4d94ff", "#0066ff"]
-cols = st.columns(len(phases))
-for i, (phase, duration) in enumerate(phases):
-    with cols[i]:
-        st.markdown(f'<div style="text-align:center;padding:1.25rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;border-top:4px solid {phase_colors[i]};height:100%;"><div style="font-size:2rem;margin-bottom:0.25rem;">{phase_icons[i]}</div><div style="font-size:0.95rem;font-weight:600;text-transform:capitalize;">{phase.replace("_"," ").title()}</div><div style="font-size:0.85rem;color:{phase_colors[i]};font-weight:500;margin-top:0.25rem;">{duration}</div></div>', unsafe_allow_html=True)
+if gtm.get("raw") is not None:
+    st.info("GTM strategy data is not available in structured format.")
+    st.markdown(f'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem;font-size:0.9rem;color:rgba(255,255,255,0.7);line-height:1.7;">{gtm.get("raw", "")}</div>', unsafe_allow_html=True)
+else:
+    # Target Market
+    target_market = gtm.get("target_market", [])
+    if target_market:
+        render_section("🎯 Target Market", "Markets to focus on")
+        for market in target_market:
+            st.markdown(f'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;"><span style="font-size:1.25rem;">🎯</span><span style="font-size:0.9rem;color:rgba(255,255,255,0.7);">{market}</span></div>', unsafe_allow_html=True)
 
-render_section("💰 Pricing Strategy")
-pricing_cols = st.columns(len(pricing))
-tier_colors = ["#4d94ff", "#0066ff", "#00d4aa"]
-tier_icons = ["🌱", "⭐", "👑"]
-for i, tier in enumerate(pricing):
-    with pricing_cols[i]:
-        features_list = "".join(f'<div style="padding:0.3rem 0;font-size:0.8rem;color:rgba(255,255,255,0.6);display:flex;align-items:center;gap:0.5rem;"><span style="color:{tier_colors[i]};">✓</span> {f}</div>' for f in tier.get("features",[]))
-        st.markdown(f'<div style="text-align:center;padding:1.5rem;background:rgba(255,255,255,0.03);border:1px solid {tier_colors[i]}44;border-radius:12px;height:100%;"><div style="font-size:2rem;margin-bottom:0.25rem;">{tier_icons[i]}</div><div style="font-size:1.1rem;font-weight:700;color:{tier_colors[i]};">{tier.get("tier","")}</div><div style="font-size:1.75rem;font-weight:800;margin:0.75rem 0;">{tier.get("price","")}</div><div style="text-align:left;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.1);">{features_list}</div></div>', unsafe_allow_html=True)
+    # Primary Customer Segment
+    primary_segment = gtm.get("primary_customer_segment", "")
+    if primary_segment:
+        render_section("👥 Primary Customer Segment", "Initial target customer")
+        st.markdown(f'<div style="background:rgba(0,102,255,0.05);border:1px solid rgba(0,102,255,0.15);border-radius:12px;padding:1.25rem;font-size:0.95rem;color:rgba(255,255,255,0.8);line-height:1.7;">{primary_segment}</div>', unsafe_allow_html=True)
 
-render_section("📡 Marketing Channels")
-channel_icons = ["🚀", "📰", "💼", "🎓", "💬"]
-cols = st.columns(3)
-for i, channel in enumerate(channels):
-    with cols[i % 3]:
-        st.markdown(f'<div style="text-align:center;padding:1.25rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;"><div style="font-size:2rem;margin-bottom:0.25rem;">{channel_icons[i]}</div><div style="font-weight:600;font-size:0.9rem;">{channel}</div></div>', unsafe_allow_html=True)
+    # Value Proposition
+    value_prop = gtm.get("value_proposition", "")
+    if value_prop:
+        render_section("💎 Value Proposition", "Core value delivered to customers")
+        st.markdown(f'<div style="background:rgba(0,212,170,0.05);border:1px solid rgba(0,212,170,0.15);border-radius:12px;padding:1.25rem;font-size:0.95rem;color:rgba(255,255,255,0.8);line-height:1.7;">{value_prop}</div>', unsafe_allow_html=True)
 
-render_section("📥 Input & Output")
+    # Positioning
+    positioning = gtm.get("positioning", "")
+    if positioning:
+        render_section("📍 Positioning", "How the startup should be positioned")
+        st.markdown(f'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem;font-size:0.95rem;color:rgba(255,255,255,0.8);line-height:1.7;">{positioning}</div>', unsafe_allow_html=True)
+
+    # Pricing Strategy
+    pricing = gtm.get("pricing_strategy", "")
+    if pricing:
+        render_section("💰 Pricing Strategy", "Recommended pricing approach")
+        st.markdown(f'<div style="background:rgba(255,217,61,0.05);border:1px solid rgba(255,217,61,0.15);border-radius:12px;padding:1.25rem;font-size:0.95rem;color:rgba(255,255,255,0.8);line-height:1.7;">{pricing}</div>', unsafe_allow_html=True)
+
+    # Customer Acquisition Channels
+    channels = gtm.get("customer_acquisition_channels", [])
+    if channels:
+        render_section("📡 Customer Acquisition Channels", "Channels to reach customers")
+        for channel in channels:
+            st.markdown(f'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;"><span style="font-size:1.25rem;">📡</span><span style="font-size:0.9rem;color:rgba(255,255,255,0.7);">{channel}</span></div>', unsafe_allow_html=True)
+
+    # Launch Strategy
+    launch_strategy = gtm.get("launch_strategy", [])
+    if launch_strategy:
+        render_section("🚀 Launch Strategy", "Phased launch plan")
+        for i, step in enumerate(launch_strategy):
+            st.markdown(f'<div style="background:rgba(77,148,255,0.05);border:1px solid rgba(77,148,255,0.15);border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;"><span style="font-size:1.25rem;color:#4d94ff;font-weight:700;">{i + 1}</span><span style="font-size:0.9rem;color:rgba(255,255,255,0.7);">{step}</span></div>', unsafe_allow_html=True)
+
+    # Partnership Strategy
+    partnerships = gtm.get("partnership_strategy", [])
+    if partnerships:
+        render_section("🤝 Partnership Strategy", "Partnership opportunities")
+        for partner in partnerships:
+            st.markdown(f'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;"><span style="font-size:1.25rem;">🤝</span><span style="font-size:0.9rem;color:rgba(255,255,255,0.7);">{partner}</span></div>', unsafe_allow_html=True)
+
+    # Retention Strategy
+    retention = gtm.get("retention_strategy", [])
+    if retention:
+        render_section("🔄 Retention Strategy", "Customer retention approaches")
+        for item in retention:
+            st.markdown(f'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;"><span style="font-size:1.25rem;">🔄</span><span style="font-size:0.9rem;color:rgba(255,255,255,0.7);">{item}</span></div>', unsafe_allow_html=True)
+
+    # Key Metrics
+    key_metrics = gtm.get("key_metrics", [])
+    if key_metrics:
+        render_section("📊 Key Metrics", "Metrics to track GTM success")
+        for metric in key_metrics:
+            st.markdown(f'<div style="background:rgba(0,212,170,0.05);border:1px solid rgba(0,212,170,0.15);border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;"><span style="font-size:1.25rem;">📊</span><span style="font-size:0.9rem;color:rgba(255,255,255,0.7);">{metric}</span></div>', unsafe_allow_html=True)
+
+    # Major GTM Risks
+    gtm_risks = gtm.get("major_gtm_risks", [])
+    if gtm_risks:
+        render_section("⚠️ Major GTM Risks", "Risks to monitor")
+        for risk in gtm_risks:
+            st.markdown(f'<div style="background:rgba(255,107,107,0.05);border:1px solid rgba(255,107,107,0.15);border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;"><span style="font-size:1.25rem;">⚠️</span><span style="font-size:0.9rem;color:rgba(255,255,255,0.7);">{risk}</span></div>', unsafe_allow_html=True)
+
+# Navigation
+render_section("▶️ Continue Analysis", "Proceed to the next analysis stages")
 col1, col2 = st.columns(2)
 with col1:
-    render_section("Input")
-    render_table(["Source", "Data"], [("Market Analysis", "Target market segments"), ("Competitor Analysis", "Competitor pricing"), ("MVP", "Product features"), ("SWOT", "Strategic positioning")])
+    if st.button("📄 Final Report →", use_container_width=True):
+        navigate_to("08_Report.py")
 with col2:
-    render_section("Output")
-    render_table(["Output", "Description"], [("Pricing Tiers", "Recommended pricing"), ("Channels", "Marketing channels"), ("Timeline", "Launch phases"), ("Strategy", "GTM recommendations")])
+    if st.button("🤖 AI Advisor →", use_container_width=True):
+        navigate_to("09_AI_Advisor.py")
 
-render_tech_badges([("📊", "Market Analysis"), ("💰", "Pricing Models"), ("📈", "Growth Strategy"), ("🎯", "Target Marketing")])
-
-render_section("🎯 Strategic Initiatives")
-strategies = [("🌱", "Product-Led Growth", "Free tier drives adoption and word-of-mouth"), ("🤝", "Community Building", "Engage startup communities on Product Hunt, HN, Reddit"), ("📝", "Content Marketing", "Publish market research and validation case studies"), ("🤝", "Partnership Program", "Partner with accelerators, VCs, and incubators")]
-cols = st.columns(2)
-for i, (icon, title, desc) in enumerate(strategies):
-    with cols[i % 2]:
-        st.markdown(f'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1rem;margin-bottom:0.5rem;"><div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;"><span style="font-size:1.5rem;">{icon}</span><span style="font-weight:600;font-size:0.9rem;">{title}</span></div><div style="font-size:0.85rem;color:rgba(255,255,255,0.5);">{desc}</div></div>', unsafe_allow_html=True)
-
-render_faqs([("What is a GTM strategy?", "A Go-to-Market strategy is a comprehensive plan for launching a product, covering target audience, pricing, channels, and marketing tactics."), ("How is pricing determined?", "Pricing is based on competitor analysis, market willingness to pay, and value-based pricing principles."), ("What marketing channels work best?", "For B2B SaaS, Product Hunt, LinkedIn, content marketing, and community building are most effective."), ("How long does a launch take?", "A typical launch cycle is 14 weeks: 4 weeks pre-launch, 2 weeks launch, 8 weeks post-launch."), ("Can I change pricing later?", "Yes, pricing can be adjusted based on market feedback and adoption rates."), ("What if the launch fails?", "GTM strategy includes contingency plans. Pivot based on what you learn from the market.")])
-render_summary("📋 Summary", "The recommended GTM strategy uses a tiered pricing model ($49-$149/month) with a 14-week launch timeline. Key channels include Product Hunt, TechCrunch, LinkedIn, and startup communities. Focus on product-led growth with a free tier to drive adoption.")
 render_page_footer()

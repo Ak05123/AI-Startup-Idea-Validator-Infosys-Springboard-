@@ -163,29 +163,21 @@ def init_session_state() -> None:
     """Initialize all required session state variables."""
     defaults = {
         "current_page": "Home",
-        "search_results": None,
-        "search_completed": False,
-        "search_elapsed_time": 0,
         "chat_history": [],
-        "orchestrator_results": None,
-        "market_analysis_done": False,
-        "competitor_analysis_done": False,
-        "swot_generated": False,
-        "mvp_generated": False,
-        "gtm_generated": False,
-        "report_generated": False,
         # Startup validation form data
-        "startup_name": "",
         "startup_idea": "",
         "industry": "",
         "country": "",
-        "target_audience": "",
-        "stage": "",
         "budget": 0,
-        "expected_launch": "",
         "keywords": [],
-
+        # Backend response
+        "backend_response": None,
+        "report": None,
         "form_validated": False,
+        "pipeline_status": "idle",
+        "pipeline_progress": 0.0,
+        "current_agent": "",
+        "agent_timeline": [],
         "settings": {
             "theme": "dark",
             "animations": True,
