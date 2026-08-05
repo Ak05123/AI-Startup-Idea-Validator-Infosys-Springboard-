@@ -1,0 +1,102 @@
+{
+  "direct_competitors": [
+    {
+      "name": "PitchBook",
+      "description": "Comprehensive market intelligence platform for private markets",
+      "strength": 9,
+      "funding": "$500M+",
+      "market_share": 28,
+      "revenue": "$200M+",
+      "employees": 1500,
+      "founded": 2007,
+      "key_features": ["Data analytics", "Market research", "Deal tracking", "Company profiles"],
+      "strengths": ["Massive data repository", "Established brand", "Enterprise relationships"],
+      "weaknesses": ["High pricing", "Complex UI", "Limited AI capabilities"],
+      "threat_level": "high"
+    },
+    {
+      "name": "CB Insights",
+      "description": "AI-powered market intelligence and competitive analysis",
+      "strength": 8,
+      "funding": "$250M+",
+      "market_share": 22,
+      "revenue": "$100M+",
+      "employees": 800,
+      "founded": 2008,
+      "key_features": ["AI analytics", "Industry reports", "Company profiles", "Tech markets"],
+      "strengths": ["Strong AI capabilities", "Industry recognition", "Quality research"],
+      "weaknesses": ["Limited startup focus", "Enterprise-only plans", "Slow innovation"],
+      "threat_level": "high"
+    },
+    {
+      "name": "Crunchbase",
+      "description": "Startup database and investment tracking platform",
+      "strength": 7,
+      "funding": "$100M+",
+      "market_share": 18,
+      "revenue": "$50M+",
+      "employees": 400,
+      "founded": 2007,
+      "key_features": ["Startup database", "Funding tracking", "People search", "News"],
+      "strengths": ["Large startup database", "Free tier available", "API access"],
+      "weaknesses": ["Limited analysis", "Data quality issues", "Basic AI features"],
+      "threat_level": "medium"
+    },
+    {
+      "name": "SimilarWeb",
+      "description": "Digital market intelligence and web analytics",
+      "strength": 7,
+      "funding": "$150M+",
+      "market_share": 15,
+      "revenue": "$80M+",
+      "employees": 600,
+      "founded": 2007,
+      "key_features": ["Traffic analytics", "Market research", "Competitor analysis", "Digital insights"],
+      "strengths": ["Web traffic data", "Digital focus", "User-friendly"],
+      "weaknesses": ["Web-only data", "Limited company intel", "No funding data"],
+      "threat_level": "medium"
+    },
+    {
+      "name": "AlphaSense",
+      "description": "AI-powered market intelligence for professionals",
+      "strength": 6,
+      "funding": "$300M+",
+      "market_share": 12,
+      "revenue": "$60M+",
+      "employees": 500,
+      "founded": 2011,
+      "key_features": ["AI search", "Expert calls", "Company filings", "News monitoring"],
+      "strengths": ["NLP capabilities", "Expert network", "Comprehensive coverage"],
+      "weaknesses": ["Expensive", "Financial focus", "Steep learning curve"],
+      "threat_level": "medium"
+    }
+  ],
+  "indirect_competitors": [
+    {
+      "name": "Owler",
+      "description": "Company insights and competitive intelligence",
+      "threat_level": "low"
+    },
+    {
+      "name": "Tracxn",
+      "description": "Startup research and deal sourcing platform",
+      "threat_level": "low"
+    },
+    {
+      "name": "Datafox",
+      "description": "AI-powered company intelligence",
+      "threat_level": "low"
+    }
+  ],
+  "market_positioning": {
+    "price_point": "premium",
+    "target_audience": ["Startups", "VCs", "Enterprises", "Consultants"],
+    "unique_selling_points": [
+      "Multi-agent AI architecture",
+      "Real-time validation",
+      "Comprehensive analysis pipeline",
+      "Actionable insights"
+    ],
+    "competitive_advantage": "AI-powered automated multi-source validation pipeline"
+  }
+}

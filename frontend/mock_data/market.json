@@ -1,0 +1,200 @@
+{
+  "market_overview": {
+    "total_addressable_market": "$8.5B",
+    "serviceable_addressable_market": "$3.2B",
+    "serviceable_obtainable_market": "$450M",
+    "market_growth_rate": "22.4%",
+    "market_maturity": "Growth",
+    "cagr_5year": "24.5%",
+    "key_trends": [
+      "AI-Powered Analytics",
+      "Real-time Market Intelligence",
+      "Automated Validation Pipelines",
+      "Multi-Agent AI Systems",
+      "Predictive Market Analysis"
+    ]
+  },
+  "market_segments": [
+    {
+      "name": "Enterprise",
+      "size": "$3.8B",
+      "growth": "28%",
+      "customers": ["Fortune 500", "Large Enterprises"],
+      "needs": ["Scalability", "Integration", "Security"]
+    },
+    {
+      "name": "SME",
+      "size": "$2.1B",
+      "growth": "22%",
+      "customers": ["Mid-market", "Small Business"],
+      "needs": ["Affordability", "Ease of Use", "Quick Results"]
+    },
+    {
+      "name": "Startup",
+      "size": "$1.6B",
+      "growth": "35%",
+      "customers": ["Early-stage", "Growth-stage"],
+      "needs": ["Validation", "Funding Insights", "Competitor Tracking"]
+    },
+    {
+      "name": "Investor",
+      "size": "$1.0B",
+      "growth": "18%",
+      "customers": ["VCs", "Angel Investors", "PE Firms"],
+      "needs": ["Deal Flow", "Due Diligence", "Market Maps"]
+    }
+  ],
+  "revenue_projection": {
+    "2024": 120,
+    "2025": 180,
+    "2026": 280,
+    "2027": 420,
+    "2028": 620
+  },
+  "market_risks": [
+    {
+      "risk": "Competition from established players",
+      "probability": 0.8,
+      "impact": 0.7,
+      "mitigation": "Focus on AI-native features and automation"
+    },
+    {
+      "risk": "Data reliability and accuracy",
+      "probability": 0.5,
+      "impact": 0.9,
+      "mitigation": "Multi-source verification and confidence scoring"
+    },
+    {
+      "risk": "Regulatory changes in AI",
+      "probability": 0.6,
+      "impact": 0.5,
+      "mitigation": "Compliance-first architecture"
+    },
+    {
+      "risk": "Market saturation",
+      "probability": 0.3,
+      "impact": 0.6,
+      "mitigation": "Continuous innovation and niche focus"
+    }
+  ],
+  "industry_trends": {
+    "ai_adoption_rate": [65, 70, 72, 78, 82, 87],
+    "market_sizes": [3.2, 4.1, 5.2, 6.4, 7.8, 8.5],
+    "years": [2023, 2024, 2025, 2026, 2027, 2028],
+    "automation_impact": {
+      "cost_reduction": "40%",
+      "time_savings": "80%",
+      "accuracy_improvement": "35%"
+    }
+  },
+  "swot": {
+    "strengths": [
+      "Multi-agent AI architecture",
+      "Comprehensive analysis pipeline",
+      "Real-time validation capabilities",
+      "User-friendly interface"
+    ],
+    "weaknesses": [
+      "Brand new entrant in established market",
+      "Limited historical data",
+      "Dependency on third-party APIs",
+      "Smaller team compared to competitors"
+    ],
+    "opportunities": [
+      "Growing demand for AI-powered tools",
+      "Untapped SME market segment",
+      "International expansion potential",
+      "Partnerships with accelerators and VCs"
+    ],
+    "threats": [
+      "Established competitors with deep pockets",
+      "Rapidly evolving AI technology",
+      "Potential new entrants from big tech",
+      "Economic downturn affecting startup funding"
+    ]
+  },
+  "mvp_recommendations": {
+    "core_features": [
+      {
+        "feature": "AI-Powered Search Agent",
+        "priority": "P0",
+        "complexity": "High",
+        "impact": 10
+      },
+      {
+        "feature": "Market Analysis Dashboard",
+        "priority": "P0",
+        "complexity": "Medium",
+        "impact": 9
+      },
+      {
+        "feature": "Competitor Intelligence",
+        "priority": "P1",
+        "complexity": "Medium",
+        "impact": 8
+      },
+      {
+        "feature": "SWOT Analysis Generator",
+        "priority": "P1",
+        "complexity": "Low",
+        "impact": 7
+      },
+      {
+        "feature": "Export & Reporting",
+        "priority": "P1",
+        "complexity": "Low",
+        "impact": 6
+      },
+      {
+        "feature": "AI Advisor Chat",
+        "priority": "P2",
+        "complexity": "Medium",
+        "impact": 7
+      }
+    ],
+    "development_timeline": {
+      "phase_1": "Core Search & Analysis - 6 weeks",
+      "phase_2": "Market Intelligence - 4 weeks",
+      "phase_3": "Reporting & Export - 3 weeks",
+      "phase_4": "AI Advisor & Polish - 3 weeks"
+    },
+    "estimated_cost": {
+      "development": "$150K - $200K",
+      "infrastructure": "$5K/month",
+      "api_costs": "$3K/month",
+      "team_size": "5-7 engineers"
+    }
+  },
+  "gtm_strategy": {
+    "channels": [
+      "Product Hunt Launch",
+      "TechCrunch Coverage",
+      "LinkedIn Content Marketing",
+      "YC Community",
+      "Startup Forums"
+    ],
+    "pricing_tiers": [
+      {
+        "tier": "Starter",
+        "price": "$49/month",
+        "features": ["5 validations/month", "Basic analytics", "Email support"]
+      },
+      {
+        "tier": "Professional",
+        "price": "$149/month",
+        "features": ["25 validations/month", "Advanced analytics", "Priority support", "API access"]
+      },
+      {
+        "tier": "Enterprise",
+        "price": "Custom",
+        "features": ["Unlimited validations", "Custom integrations", "Dedicated support", "SLA"]
+      }
+    ],
+    "launch_timeline": {
+      "pre_launch": "4 weeks",
+      "launch": "2 weeks",
+      "post_launch": "8 weeks",
+      "growth_phase": "Ongoing"
+    }
+  }
+}

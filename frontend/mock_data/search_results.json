@@ -1,0 +1,211 @@
+{
+  "articles": [
+    {
+      "id": 1,
+      "title": "AI-Powered SaaS Platforms Raise $2.3B in Q1 2026",
+      "source": "TechCrunch",
+      "url": "https://techcrunch.com",
+      "date": "2026-03-15",
+      "summary": "Investment in AI-powered SaaS platforms has surged 47% year-over-year, with enterprise AI solutions attracting the largest share of funding rounds exceeding $100M.",
+      "relevance": 0.95,
+      "sentiment": "positive",
+      "keywords": ["AI", "SaaS", "funding", "enterprise"]
+    },
+    {
+      "id": 2,
+      "title": "Startup Validation Market Expected to Reach $8.5B by 2028",
+      "source": "Forbes",
+      "url": "https://forbes.com",
+      "date": "2026-03-10",
+      "summary": "The startup validation and market intelligence market is projected to grow at 22.4% CAGR, driven by increasing demand for data-driven decision making.",
+      "relevance": 0.92,
+      "sentiment": "positive",
+      "keywords": ["market size", "validation", "growth"]
+    },
+    {
+      "id": 3,
+      "title": "Multi-Agent AI Systems Transform Business Intelligence",
+      "source": "VentureBeat",
+      "url": "https://venturebeat.com",
+      "date": "2026-03-08",
+      "summary": "Multi-agent AI architectures are revolutionizing how businesses gather and analyze competitive intelligence, reducing research time by 80%.",
+      "relevance": 0.88,
+      "sentiment": "positive",
+      "keywords": ["multi-agent", "AI", "business intelligence"]
+    },
+    {
+      "id": 4,
+      "title": "Y Combinator Backs 12 AI Validation Startups in Latest Batch",
+      "source": "Y Combinator Blog",
+      "url": "https://ycombinator.com",
+      "date": "2026-03-05",
+      "summary": "YC's latest cohort features a record number of startups focused on AI-powered market validation and competitive analysis tools.",
+      "relevance": 0.85,
+      "sentiment": "positive",
+      "keywords": ["Y Combinator", "startup", "validation"]
+    },
+    {
+      "id": 5,
+      "title": "Enterprise AI Adoption Hits 72% in Fortune 500 Companies",
+      "source": "McKinsey",
+      "url": "https://mckinsey.com",
+      "date": "2026-02-28",
+      "summary": "McKinsey's latest survey reveals that 72% of Fortune 500 companies have adopted AI tools for strategic planning and market analysis.",
+      "relevance": 0.82,
+      "sentiment": "positive",
+      "keywords": ["enterprise", "AI adoption", "Fortune 500"]
+    },
+    {
+      "id": 6,
+      "title": "Regulatory Framework for AI Business Tools Takes Shape",
+      "source": "Reuters",
+      "url": "https://reuters.com",
+      "date": "2026-02-20",
+      "summary": "New EU and US regulations for AI-powered business tools are creating both challenges and opportunities for startups in the validation space.",
+      "relevance": 0.78,
+      "sentiment": "neutral",
+      "keywords": ["regulation", "AI", "compliance"]
+    }
+  ],
+  "competitors": [
+    {
+      "name": "PitchBook",
+      "description": "Comprehensive market intelligence platform for private markets",
+      "strength": 9,
+      "funding": "$500M+",
+      "market_share": 28,
+      "key_features": ["Data analytics", "Market research", "Deal tracking"]
+    },
+    {
+      "name": "CB Insights",
+      "description": "AI-powered market intelligence and competitive analysis",
+      "strength": 8,
+      "funding": "$250M+",
+      "market_share": 22,
+      "key_features": ["AI analytics", "Industry reports", "Company profiles"]
+    },
+    {
+      "name": "Crunchbase",
+      "description": "Startup database and investment tracking platform",
+      "strength": 7,
+      "funding": "$100M+",
+      "market_share": 18,
+      "key_features": ["Startup database", "Funding tracking", "People search"]
+    },
+    {
+      "name": "SimilarWeb",
+      "description": "Digital market intelligence and web analytics",
+      "strength": 7,
+      "funding": "$150M+",
+      "market_share": 15,
+      "key_features": ["Traffic analytics", "Market research", "Competitor analysis"]
+    },
+    {
+      "name": "AlphaSense",
+      "description": "AI-powered market intelligence for professionals",
+      "strength": 6,
+      "funding": "$300M+",
+      "market_share": 12,
+      "key_features": ["AI search", "Expert calls", "Company filings"]
+    }
+  ],
+  "funding_news": [
+    {
+      "round": "Series B",
+      "company": "MarketMind AI",
+      "amount": "$45M",
+      "date": "2026-03-12",
+      "investors": ["Sequoia Capital", "a16z", "Accel"],
+      "focus": "AI market validation"
+    },
+    {
+      "round": "Series A",
+      "company": "ValidatePro",
+      "amount": "$12M",
+      "date": "2026-02-25",
+      "investors": ["YC", "First Round Capital"],
+      "focus": "Startup validation tools"
+    },
+    {
+      "round": "Seed",
+      "company": "InsightAI",
+      "amount": "$4.5M",
+      "date": "2026-02-10",
+      "investors": ["AngelList", "Individual investors"],
+      "focus": "Competitive intelligence"
+    },
+    {
+      "round": "Series C",
+      "company": "DataDriven Inc",
+      "amount": "$85M",
+      "date": "2026-01-20",
+      "investors": ["Tiger Global", "SoftBank"],
+      "focus": "Enterprise analytics"
+    }
+  ],
+  "discussions": [
+    {
+      "platform": "Reddit r/startups",
+      "title": "How do you validate your startup ideas?",
+      "sentiment": "mixed",
+      "engagement": 342,
+      "date": "2026-03-14",
+      "key_points": ["Need for better tools", "Manual research is time-consuming", "AI solutions promising"]
+    },
+    {
+      "platform": "LinkedIn",
+      "title": "The Future of Market Research is AI-Powered",
+      "sentiment": "positive",
+      "engagement": 1289,
+      "date": "2026-03-11",
+      "key_points": ["AI reducing research time", "Data-driven decisions", "Competitive advantage"]
+    },
+    {
+      "platform": "Twitter/X",
+      "title": "Startup Validation Tools Discussion",
+      "sentiment": "positive",
+      "engagement": 567,
+      "date": "2026-03-09",
+      "key_points": ["Growing demand", "Feature requests", "Integration needs"]
+    },
+    {
+      "platform": "Hacker News",
+      "title": "Show HN: AI-Powered Market Validation Tool",
+      "sentiment": "mixed",
+      "engagement": 234,
+      "date": "2026-03-07",
+      "key_points": ["Technical feedback", "Feature suggestions", "Competitor mentions"]
+    }
+  ],
+  "industry_reports": [
+    {
+      "title": "Global AI in Market Research Report 2026",
+      "publisher": "Gartner",
+      "date": "2026-01-15",
+      "market_size": "$4.2B",
+      "growth_rate": "24.5%",
+      "key_findings": ["AI adoption accelerating", "Cost reduction of 40%", "Accuracy improvement of 35%"]
+    },
+    {
+      "title": "Startup Ecosystem Report Q1 2026",
+      "publisher": "State of European Tech",
+      "date": "2026-02-01",
+      "market_size": "$3.8B",
+      "growth_rate": "18.2%",
+      "key_findings": ["Record number of AI startups", "Increased funding", "Global expansion"]
+    }
+  ],
+  "market_statistics": {
+    "total_addressable_market": "$8.5B",
+    "market_growth_rate": "22.4%",
+    "avg_confidence_score": 87,
+    "source_quality_score": 92,
+    "total_articles_found": 156,
+    "total_competitors_identified": 23,
+    "total_funding_rounds": 47,
+    "total_discussions_analyzed": 89,
+    "total_reports_compiled": 12,
+    "search_duration_seconds": 3.42,
+    "sources_used": ["Google", "Tavily", "Serper", "Crunchbase", "News", "Reddit", "LinkedIn"]
+  }
+}
