@@ -2,50 +2,33 @@ import sys
 from pathlib import Path
 import json
 
-# ==================================================
+# ============================================================
 # PATH SETUP
-# ==================================================
+# ============================================================
 
 sys.path.append(
     str(Path(__file__).resolve().parents[1])
 )
 
-# ==================================================
-# IMPORTS
-# ==================================================
+# ============================================================
+# IMPORT
+# ============================================================
 
-from deepagents import create_deep_agent
+from agents.gtm import gtm_agent
 
-from app.config import gemini_model_1
 
-from agents.subagents.mvp import mvp_subagent
-
-# ==================================================
-# CREATE DEEP AGENT
-# ==================================================
-
-agent = create_deep_agent(
-
-    model=gemini_model_1,
-
-    subagents=[
-        mvp_subagent
-    ]
-
-)
-
-# ==================================================
+# ============================================================
 # USER INPUT
-# ==================================================
+# ============================================================
 
 idea = input("Enter Startup Idea: ").strip()
 
-# ==================================================
-# INVOKE AGENT
-# ==================================================
 
-result = agent.invoke(
+# ============================================================
+# INVOKE GTM AGENT
+# ============================================================
 
+result = gtm_agent.invoke(
     {
         "messages": [
             {
@@ -55,55 +38,66 @@ Startup Idea:
 
 {idea}
 
-You are required to design ONLY the Minimum Viable Product (MVP).
-
-Delegate the task ONLY to mvp_agent.
-
-The final response MUST be exactly the JSON returned by mvp_agent.
+You are required to generate ONLY the
+Go-To-Market (GTM) Strategy.
 
 Generate:
 
-- Problem Statement
-- Minimum 3 Target User Groups
+- Minimum 3 Target Audience Segments
 - Value Proposition
-- Minimum 6 Core Features
-- Minimum 6 Future Features
-- Recommended Tech Stack
-- Development Phases
-- Estimated Timeline
-- Minimum 5 Success Metrics
-- Minimum 5 Risks
+- Positioning Statement
+- Minimum 6 Marketing Channels
+- Pricing Strategy
+- Revenue Model
+- Minimum 5 Customer Acquisition Strategies
+- Minimum 5 Customer Retention Strategies
+- Launch Plan
+- Minimum 5 Partnership Opportunities
+- Minimum 6 KPIs
+- Estimated Marketing Budget
+- Minimum 5 GTM Risks
 
-Rules:
+Return ONLY valid JSON.
 
-- Return ONLY valid JSON.
-- Do NOT explain.
-- Do NOT summarize.
-- Do NOT use markdown.
-- Do NOT mention delegation.
-- Do NOT add any extra text before or after the JSON.
+Do NOT explain.
+Do NOT summarize.
+Do NOT use markdown.
+Do NOT add any text before or after the JSON.
 """
             }
         ]
     }
-
 )
 
-# ==================================================
-# PRINT RESULT
-# ==================================================
+
+# ============================================================
+# GET RESPONSE
+# ============================================================
 
 response = result["messages"][-1].content
 
 if isinstance(response, list):
     response = response[0]["text"]
 
-print("\n========== MVP PLAN ==========\n")
+
+# ============================================================
+# PRINT RESULT
+# ============================================================
+
+print("\n========== GO-TO-MARKET STRATEGY ==========\n")
 
 try:
     parsed = json.loads(response)
-    print(json.dumps(parsed, indent=4))
-except Exception:
+
+    print(
+        json.dumps(
+            parsed,
+            indent=4
+        )
+    )
+
+except json.JSONDecodeError:
     print(response)
 
-print("\n====================================")
+
+print("\n===========================================")

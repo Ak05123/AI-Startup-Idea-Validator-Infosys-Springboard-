@@ -18,20 +18,18 @@ from deepagents import create_deep_agent
 
 from app.config import gemini_model_2
 
-from agents.subagents.gtm import gtm_subagent
+from agents.gtm import gtm_subagent
 
 # ==================================================
 # CREATE DEEP AGENT
 # ==================================================
 
 agent = create_deep_agent(
-
     model=gemini_model_2,
 
     subagents=[
         gtm_subagent
     ]
-
 )
 
 # ==================================================
@@ -45,7 +43,6 @@ idea = input("Enter Startup Idea: ").strip()
 # ==================================================
 
 result = agent.invoke(
-
     {
         "messages": [
             {
@@ -84,11 +81,11 @@ Rules:
 - Do NOT summarize.
 - Do NOT use markdown.
 - Do NOT mention delegation.
+- Do NOT add any extra text before or after the JSON.
 """
             }
         ]
     }
-
 )
 
 # ==================================================
@@ -104,7 +101,14 @@ print("\n========== GO TO MARKET STRATEGY ==========\n")
 
 try:
     parsed = json.loads(response)
-    print(json.dumps(parsed, indent=4))
+
+    print(
+        json.dumps(
+            parsed,
+            indent=4
+        )
+    )
+
 except Exception:
     print(response)
 

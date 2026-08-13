@@ -2,50 +2,33 @@ import sys
 from pathlib import Path
 import json
 
-# ==================================================
+# ============================================================
 # PATH SETUP
-# ==================================================
+# ============================================================
 
 sys.path.append(
     str(Path(__file__).resolve().parents[1])
 )
 
-# ==================================================
-# IMPORTS
-# ==================================================
+# ============================================================
+# IMPORT
+# ============================================================
 
-from deepagents import create_deep_agent
+from agents.swot_risk import swot_agent
 
-from app.config import gemini_model_2
 
-from agents.subagents.swot_risk import swot_subagent
-
-# ==================================================
-# CREATE DEEP AGENT
-# ==================================================
-
-agent = create_deep_agent(
-
-    model=gemini_model_2,
-
-    subagents=[
-        swot_subagent
-    ]
-
-)
-
-# ==================================================
+# ============================================================
 # USER INPUT
-# ==================================================
+# ============================================================
 
 idea = input("Enter Startup Idea: ").strip()
 
-# ==================================================
-# INVOKE AGENT
-# ==================================================
 
-result = agent.invoke(
+# ============================================================
+# INVOKE SWOT AGENT
+# ============================================================
 
+result = swot_agent.invoke(
     {
         "messages": [
             {
@@ -55,11 +38,10 @@ Startup Idea:
 
 {idea}
 
-You are required to perform ONLY SWOT analysis.
 
-Delegate the task ONLY to swot_agent.
 
-The final response MUST be exactly the JSON returned by swot_agent.
+
+Perform ONLY SWOT analysis.
 
 Generate:
 
@@ -75,36 +57,47 @@ Risk Level must be one of:
 - Medium
 - High
 
-Rules:
+Return ONLY valid JSON.
 
-- Return ONLY valid JSON.
-- Do NOT explain.
-- Do NOT summarize.
-- Do NOT use markdown.
-- Do NOT mention delegation.
-- Do NOT add any text before or after the JSON.
+Do NOT explain.
+Do NOT summarize.
+Do NOT use markdown.
+Do NOT add any text before or after the JSON.
 """
             }
         ]
     }
-
 )
 
-# ==================================================
-# PRINT RESULT
-# ==================================================
+
+# ============================================================
+# GET RESPONSE
+# ============================================================
 
 response = result["messages"][-1].content
 
 if isinstance(response, list):
     response = response[0]["text"]
 
+
+# ============================================================
+# PRINT RESULT
+# ============================================================
+
 print("\n========== SWOT ANALYSIS ==========\n")
 
 try:
     parsed = json.loads(response)
-    print(json.dumps(parsed, indent=4))
-except Exception:
+
+    print(
+        json.dumps(
+            parsed,
+            indent=4
+        )
+    )
+
+except json.JSONDecodeError:
     print(response)
+
 
 print("\n==================================")

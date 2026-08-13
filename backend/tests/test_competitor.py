@@ -2,50 +2,33 @@ import sys
 from pathlib import Path
 import json
 
-# ==================================================
+# ============================================================
 # PATH SETUP
-# ==================================================
+# ============================================================
 
 sys.path.append(
     str(Path(__file__).resolve().parents[1])
 )
 
-# ==================================================
-# IMPORTS
-# ==================================================
+# ============================================================
+# IMPORT
+# ============================================================
 
-from deepagents import create_deep_agent
+from agents.competitor import competitor_agent
 
-from app.config import gemini_model_1
 
-from agents.subagents.competitor import competitor_subagent
-
-# ==================================================
-# CREATE DEEP AGENT
-# ==================================================
-
-agent = create_deep_agent(
-
-    model=gemini_model_1,
-
-    subagents=[
-        competitor_subagent
-    ]
-
-)
-
-# ==================================================
+# ============================================================
 # USER INPUT
-# ==================================================
+# ============================================================
 
 idea = input("Enter Startup Idea: ").strip()
 
-# ==================================================
-# INVOKE AGENT
-# ==================================================
 
-result = agent.invoke(
+# ============================================================
+# INVOKE COMPETITOR AGENT
+# ============================================================
 
+result = competitor_agent.invoke(
     {
         "messages": [
             {
@@ -57,33 +40,39 @@ Startup Idea:
 
 Perform ONLY competitor analysis.
 
-Delegate ONLY to competitor_agent.
-
 Return ONLY valid JSON.
 
 Do not explain.
 Do not summarize.
 Do not use markdown.
+Do not add any text before or after the JSON.
 """
             }
         ]
     }
-
 )
 
-# ==================================================
-# PRINT RESULT
-# ==================================================
+
+# ============================================================
+# GET RESPONSE
+# ============================================================
 
 response = result["messages"][-1].content
 
 if isinstance(response, list):
     response = response[0]["text"]
 
-print("\nRESULT\n")
+
+# ============================================================
+# PRINT RESULT
+# ============================================================
+
+print("\n========== COMPETITOR ANALYSIS ==========\n")
 
 try:
     parsed = json.loads(response)
     print(json.dumps(parsed, indent=4))
-except Exception:
+except json.JSONDecodeError:
     print(response)
+
+print("\n=========================================")

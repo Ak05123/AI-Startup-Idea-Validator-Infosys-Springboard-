@@ -31,30 +31,30 @@ if not GEMINI_API_KEY_3:
 # ==================================================
 
 gemini_model_1 = ChatGoogleGenerativeAI(
-    model="gemini-3.5-flash",
+    model="gemini-2.5-pro",
     api_key=GEMINI_API_KEY_1,
     timeout=120,
     max_retries=5,
 )
+
+
 
 # ==================================================
 # GEMINI MODEL 2
 # ==================================================
 
 gemini_model_2 = ChatGoogleGenerativeAI(
-    model="gemini-3.5-flash",
+    model="gemini-2.5-flash",
     api_key=GEMINI_API_KEY_2,
-    
     timeout=120,
     max_retries=5,
 )
-
 # ==================================================
 # GEMINI MODEL 3
 # ==================================================
 
 gemini_model_3 = ChatGoogleGenerativeAI(
-    model="gemini-3.5-flash",
+    model="gemini-2.5-pro",
     api_key=GEMINI_API_KEY_3,
     
     timeout=120,
