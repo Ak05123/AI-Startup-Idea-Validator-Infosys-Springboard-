@@ -2,114 +2,151 @@ import sys
 from pathlib import Path
 import json
 
-# ==================================================
+
+# ============================================================
 # PATH SETUP
-# ==================================================
+# ============================================================
 
 sys.path.append(
     str(Path(__file__).resolve().parents[1])
 )
 
-# ==================================================
+
+# ============================================================
 # IMPORTS
-# ==================================================
+# ============================================================
 
-from deepagents import create_deep_agent
+from app.agent_factory import run_with_fallback
+from agents.gtm import gtm_agent
 
-from app.config import gemini_model_2
 
-from agents.gtm import gtm_subagent
+# ============================================================
+# HEADER
+# ============================================================
 
-# ==================================================
-# CREATE DEEP AGENT
-# ==================================================
+print("\n========================================")
+print("          GTM AGENT TEST")
+print("========================================")
 
-agent = create_deep_agent(
-    model=gemini_model_2,
 
-    subagents=[
-        gtm_subagent
-    ]
-)
-
-# ==================================================
+# ============================================================
 # USER INPUT
-# ==================================================
+# ============================================================
 
-idea = input("Enter Startup Idea: ").strip()
+startup_idea = input(
+    "\nEnter Startup Idea: "
+).strip()
 
-# ==================================================
-# INVOKE AGENT
-# ==================================================
 
-result = agent.invoke(
-    {
-        "messages": [
-            {
-                "role": "user",
-                "content": f"""
+# ============================================================
+# INPUT VALIDATION
+# ============================================================
+
+if not startup_idea:
+
+    print("\nStartup idea cannot be empty.")
+    sys.exit(1)
+
+
+# ============================================================
+# PAYLOAD
+# ============================================================
+
+payload = {
+
+    "messages": [
+
+        {
+            "role": "user",
+
+            "content": f"""
 Startup Idea:
 
-{idea}
+{startup_idea}
 
-You are required to generate ONLY the Go-To-Market (GTM) Strategy.
+Create ONLY a concise Go-To-Market strategy.
 
-Delegate ONLY to gtm_agent.
+Use ONLY the startup idea.
 
-The final response MUST be exactly the JSON returned by gtm_agent.
+Do NOT use:
 
-Generate:
+- Competitor Analysis
+- Market Analysis
+- SWOT Analysis
+- MVP Analysis
+- Final Report
 
-- Minimum 3 Target Audience Segments
-- Value Proposition
-- Positioning Statement
-- Minimum 6 Marketing Channels
-- Pricing Strategy
-- Revenue Model
-- Minimum 5 Customer Acquisition Strategies
-- Minimum 5 Customer Retention Strategies
-- Launch Plan
-- Minimum 5 Partnership Opportunities
-- Minimum 6 KPIs
-- Estimated Budget
-- Minimum 5 Risks
+Do NOT perform web searches.
 
-Rules:
+Return ONLY valid JSON.
 
-- Return ONLY valid JSON.
-- Do NOT explain.
-- Do NOT summarize.
-- Do NOT use markdown.
-- Do NOT mention delegation.
-- Do NOT add any extra text before or after the JSON.
+Do not explain.
+Do not summarize.
+Do not use markdown.
 """
-            }
-        ]
-    }
-)
+        }
 
-# ==================================================
-# PRINT RESULT
-# ==================================================
+    ]
+}
 
-response = result["messages"][-1].content
 
-if isinstance(response, list):
-    response = response[0]["text"]
-
-print("\n========== GO TO MARKET STRATEGY ==========\n")
+# ============================================================
+# RUN GTM AGENT
+# ============================================================
 
 try:
-    parsed = json.loads(response)
 
-    print(
-        json.dumps(
-            parsed,
-            indent=4
-        )
+    response = run_with_fallback(
+        agent_definition=gtm_agent,
+        payload=payload
     )
 
-except Exception:
+except Exception as error:
+
+    print("\n========================================")
+    print("GTM AGENT FAILED")
+    print("========================================")
+
+    print(f"\nError: {error}")
+
+    sys.exit(1)
+
+
+# ============================================================
+# JSON VALIDATION
+# ============================================================
+
+try:
+
+    parsed_response = json.loads(response)
+
+except json.JSONDecodeError:
+
+    print("\n========================================")
+    print("JSON VALIDATION FAILED")
+    print("========================================")
+
+    print("\nRaw response:")
     print(response)
 
-print("\n==========================================")
+    sys.exit(1)
+
+
+# ============================================================
+# SUCCESS
+# ============================================================
+
+print("\n========================================")
+print("       JSON VALIDATION: SUCCESS")
+print("========================================")
+
+print(
+    json.dumps(
+        parsed_response,
+        indent=4
+    )
+)
+
+print("\n========================================")
+print("          GTM TEST COMPLETE")
+print("========================================")

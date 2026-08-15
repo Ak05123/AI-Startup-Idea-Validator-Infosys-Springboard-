@@ -1,115 +1,230 @@
 import sys
 from pathlib import Path
-import json
 
-# ==================================================
+
+# ============================================================
 # PATH SETUP
-# ==================================================
+# ============================================================
 
 sys.path.append(
     str(Path(__file__).resolve().parents[1])
 )
 
-from app.advisor import ask_advisor
+
+# ============================================================
+# IMPORTS
+# ============================================================
+
+from agents.advisor import advisor_agent
+from app.agent_factory import run_with_fallback
 
 
 # ============================================================
-# SAMPLE VALIDATION RESULT
+# SAMPLE VALIDATION DATA
 # ============================================================
 
-validation_context = {
+startup_data = {
 
-    "startup_idea": "AI-powered technical interview platform",
-
-    "market_analysis": {
-        "industry": "EdTech / AI Interview Preparation",
-        "target_customers": [
-            "Computer Science students",
-            "Fresh graduates",
-            "Working software professionals"
-        ],
-        "market_trends": [
-            "AI-powered learning",
-            "Personalized interview preparation"
-        ]
-    },
+    "startup_idea": "bus booking",
 
     "competitor_analysis": {
         "direct_competitors": [
-            "LeetCode",
-            "HackerRank"
+            "RedBus",
+            "AbhiBus",
+            "Busbud"
         ],
         "competitive_advantages": [
-            "AI-powered personalized feedback"
-        ],
-        "market_gaps": [
-            "Limited personalized interview simulations"
+            "Focus on underserved regional routes",
+            "Simple booking experience"
         ]
     },
 
-    "swot": {
+    "market_analysis": {
+
+        "target_market": (
+            "Online intercity and regional "
+            "bus ticketing market"
+        ),
+
+        "target_customers": [
+            "Daily commuters",
+            "Students",
+            "Budget travelers"
+        ],
+
+        "market_opportunities": [
+            "Tier-2 and Tier-3 cities",
+            "Digital booking adoption"
+        ]
+    },
+
+    "swot_analysis": {
+
         "strengths": [
-            "AI personalization"
+            "Clear customer problem",
+            "Scalable digital platform"
         ],
-        "weaknesses": [
-            "New brand"
-        ],
-        "opportunities": [
-            "Growing demand for interview preparation"
-        ],
-        "threats": [
-            "Established competitors"
-        ],
-        "risk_level": "Medium"
-    },
 
-    "mvp": {
-        "core_features": [
-            "AI mock interviews",
-            "Performance analysis",
-            "Personalized recommendations"
+        "weaknesses": [
+            "Strong existing competition",
+            "Dependence on bus operators"
+        ],
+
+        "opportunities": [
+            "Regional routes",
+            "Digital adoption"
+        ],
+
+        "threats": [
+            "Established competitors",
+            "Operator reliability issues"
         ]
     },
 
-    "gtm": {
-        "target_audience": [
-            "Final-year students",
-            "Fresh graduates"
+    "mvp_analysis": {
+
+        "problem_statement": (
+            "Passengers need a convenient way "
+            "to search and book bus tickets."
+        ),
+
+        "core_features": [
+            "Route search",
+            "Schedule filtering",
+            "Seat selection",
+            "Online payment",
+            "Digital ticket generation"
         ],
-        "pricing_strategy": "Freemium"
+
+        "estimated_timeline": "8 weeks"
+    },
+
+    "gtm_analysis": {
+
+        "target_audience": [
+            "Daily commuters",
+            "Students",
+            "Budget travelers"
+        ],
+
+        "value_proposition": (
+            "Simple and convenient bus booking "
+            "for regional travelers."
+        )
     },
 
     "final_report": {
-        "validation_score": 78,
-        "risk_level": "Medium",
-        "verdict": "Promising with execution risks"
+
+        "validation_score": 76,
+
+        "success_potential": "Medium-High",
+
+        "competitive_position": {
+            "score": 65,
+            "assessment": (
+                "Strong competition requires "
+                "clear differentiation."
+            )
+        },
+
+        "mvp_feasibility": {
+            "score": 82,
+            "assessment": (
+                "The MVP can be developed using "
+                "established technologies."
+            )
+        },
+
+        "recommendation": "Proceed with caution",
+
+        "major_risks": [
+            "Strong competition",
+            "Low initial customer trust",
+            "Operator integration issues"
+        ]
     }
 }
 
 
 # ============================================================
-# CHAT LOOP
+# USER QUESTION
 # ============================================================
 
-print("\n======================================")
-print("      AI STARTUP CONVERSATIONAL ADVISOR")
-print("======================================")
+print("\n========================================")
+print("       CONVERSATIONAL ADVISOR TEST")
+print("========================================")
 
-while True:
+question = input(
+    "\nAsk your question: "
+).strip()
 
-    question = input("\nYou: ").strip()
 
-    if question.lower() in ["exit", "quit"]:
-        print("Advisor: Goodbye!")
-        break
+# ============================================================
+# PROMPT
+# ============================================================
 
-    if not question:
-        continue
+prompt = f"""
 
-    answer = ask_advisor(
-        question,
-        validation_context
+STARTUP VALIDATION DATA:
+
+{startup_data}
+
+
+USER QUESTION:
+
+{question}
+
+
+Answer the user's question using ONLY the
+startup validation data provided above.
+
+Be practical and conversational.
+
+Do not invent information.
+
+Do not return JSON.
+"""
+
+
+# ============================================================
+# RUN ADVISOR
+# ============================================================
+
+try:
+
+    result = run_with_fallback(
+
+        advisor_agent,
+
+        {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
+        },
+
+        require_json=False
     )
 
-    print("\nAdvisor:")
-    print(answer)
+
+    # ========================================================
+    # OUTPUT
+    # ========================================================
+
+    
+
+    print(result)
+
+    print(
+        "\n========================================"
+    )
+
+except Exception:
+
+    
+
+    print(
+        "\nError: advisor could not complete the request."
+    )

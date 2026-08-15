@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 import json
 
+
 # ============================================================
 # PATH SETUP
 # ============================================================
@@ -10,94 +11,185 @@ sys.path.append(
     str(Path(__file__).resolve().parents[1])
 )
 
+
 # ============================================================
-# IMPORT
+# IMPORTS
 # ============================================================
 
-from agents.gtm import gtm_agent
+from app.agent_factory import run_with_fallback
+from agents.mvp import mvp_agent
+
+
+# ============================================================
+# HEADER
+# ============================================================
+
+print("\n========================================")
+print("             MVP AGENT TEST")
+print("========================================")
 
 
 # ============================================================
 # USER INPUT
 # ============================================================
 
-idea = input("Enter Startup Idea: ").strip()
+startup_idea = input(
+    "\nEnter Startup Idea: "
+).strip()
 
 
 # ============================================================
-# INVOKE GTM AGENT
+# VALIDATE INPUT
 # ============================================================
 
-result = gtm_agent.invoke(
-    {
-        "messages": [
-            {
-                "role": "user",
-                "content": f"""
+if not startup_idea:
+
+    print("\nStartup idea cannot be empty.")
+    sys.exit(1)
+
+
+# ============================================================
+# PAYLOAD
+# ============================================================
+
+payload = {
+
+    "messages": [
+
+        {
+            "role": "user",
+
+            "content": f"""
 Startup Idea:
 
-{idea}
+{startup_idea}
 
-You are required to generate ONLY the
-Go-To-Market (GTM) Strategy.
+Perform ONLY MVP planning.
 
-Generate:
+Use ONLY the startup idea.
 
-- Minimum 3 Target Audience Segments
-- Value Proposition
-- Positioning Statement
-- Minimum 6 Marketing Channels
-- Pricing Strategy
-- Revenue Model
-- Minimum 5 Customer Acquisition Strategies
-- Minimum 5 Customer Retention Strategies
-- Launch Plan
-- Minimum 5 Partnership Opportunities
-- Minimum 6 KPIs
-- Estimated Marketing Budget
-- Minimum 5 GTM Risks
+Do NOT use:
+
+- Competitor Analysis
+- Market Analysis
+- SWOT Analysis
+- GTM Strategy
+- Final Report
+
+Do NOT perform web searches.
 
 Return ONLY valid JSON.
 
-Do NOT explain.
-Do NOT summarize.
-Do NOT use markdown.
-Do NOT add any text before or after the JSON.
+Do not explain.
+Do not summarize.
+Do not use markdown.
+Do not add text outside the JSON.
 """
-            }
-        ]
-    }
-)
+        }
+
+    ]
+}
 
 
 # ============================================================
-# GET RESPONSE
+# RUN WITH CENTRALIZED FALLBACK
 # ============================================================
-
-response = result["messages"][-1].content
-
-if isinstance(response, list):
-    response = response[0]["text"]
-
-
-# ============================================================
-# PRINT RESULT
-# ============================================================
-
-print("\n========== GO-TO-MARKET STRATEGY ==========\n")
 
 try:
-    parsed = json.loads(response)
 
-    print(
-        json.dumps(
-            parsed,
-            indent=4
-        )
+    response = run_with_fallback(
+        agent_definition=mvp_agent,
+        payload=payload
     )
 
+except Exception as error:
+
+    print("\n========================================")
+    print("             MVP AGENT FAILED")
+    print("========================================")
+
+    print(f"\nError: {error}")
+
+    sys.exit(1)
+
+
+# ============================================================
+# JSON VALIDATION
+# ============================================================
+
+try:
+
+    parsed_response = json.loads(response)
+
 except json.JSONDecodeError:
+
+    print("\n========================================")
+    print("       JSON VALIDATION FAILED")
+    print("========================================")
+
+    print("\nRaw response:")
     print(response)
 
+    sys.exit(1)
 
-print("\n===========================================")
+
+# ============================================================
+# REQUIRED FIELD VALIDATION
+# ============================================================
+
+required_fields = [
+    "startup_idea",
+    "problem_statement",
+    "target_users",
+    "value_proposition",
+    "core_features",
+    "future_features",
+    "recommended_tech_stack",
+    "development_phases",
+    "estimated_timeline",
+    "success_metrics",
+    "risks"
+]
+
+
+missing_fields = [
+    field
+    for field in required_fields
+    if field not in parsed_response
+]
+
+
+if missing_fields:
+
+    print("\n========================================")
+    print("       MVP STRUCTURE VALIDATION FAILED")
+    print("========================================")
+
+    print(
+        "\nMissing fields:"
+    )
+
+    for field in missing_fields:
+        print(f"- {field}")
+
+    sys.exit(1)
+
+
+# ============================================================
+# SUCCESS
+# ============================================================
+
+print("\n========================================")
+print("       JSON VALIDATION: SUCCESS")
+print("========================================")
+
+print(
+    json.dumps(
+        parsed_response,
+        indent=4
+    )
+)
+
+print("\n========================================")
+print("           MVP TEST COMPLETE")
+print("========================================")

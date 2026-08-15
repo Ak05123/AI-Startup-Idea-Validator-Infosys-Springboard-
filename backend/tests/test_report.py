@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 import json
 
+
 # ============================================================
 # PATH SETUP
 # ============================================================
@@ -10,186 +11,308 @@ sys.path.append(
     str(Path(__file__).resolve().parents[1])
 )
 
+
 # ============================================================
 # IMPORTS
 # ============================================================
 
+from app.agent_factory import run_with_fallback
+
+from agents.competitor import competitor_agent
+from agents.market_analysis import market_agent
+from agents.swot_risk import swot_agent
+from agents.mvp import mvp_agent
+from agents.gtm import gtm_agent
 from agents.report import report_agent
-from app.pdf_generator import generate_report_pdf
 
 
 # ============================================================
 # USER INPUT
 # ============================================================
 
-idea = input("Enter Startup Idea: ").strip()
+idea = input(
+    "Enter Startup Idea: "
+).strip()
 
 
 # ============================================================
-# SAMPLE SPECIALIST ANALYSIS
+# COMMON PAYLOAD
 # ============================================================
 
-specialist_analysis = {
-    "startup_idea": idea,
+def create_payload(instruction):
 
-    "competitor_analysis": {
-        "direct_competitors": [],
-        "indirect_competitors": [],
-        "competitive_advantages": [],
-        "market_gaps": [],
-        "references": []
-    },
-
-    "market_analysis": {
-        "industry": "",
-        "industry_overview": "",
-        "market_size": {},
-        "growth_rate": "",
-        "target_customers": [],
-        "market_trends": [],
-        "opportunities": [],
-        "challenges": [],
-        "references": []
-    },
-
-    "swot_analysis": {
-        "strengths": [],
-        "weaknesses": [],
-        "opportunities": [],
-        "threats": [],
-        "risk_level": "",
-        "recommendations": []
-    },
-
-    "mvp_recommendation": {
-        "problem_statement": "",
-        "target_users": [],
-        "value_proposition": "",
-        "core_features": [],
-        "future_features": [],
-        "recommended_tech_stack": {},
-        "development_phases": [],
-        "estimated_timeline": "",
-        "success_metrics": [],
-        "risks": []
-    },
-
-    "gtm_strategy": {
-        "target_audience": [],
-        "value_proposition": "",
-        "positioning_statement": "",
-        "marketing_channels": [],
-        "pricing_strategy": "",
-        "revenue_model": "",
-        "customer_acquisition_strategy": [],
-        "customer_retention_strategy": [],
-        "launch_plan": [],
-        "partnership_opportunities": [],
-        "key_metrics": [],
-        "estimated_budget": "",
-        "risks": []
-    }
-}
-
-
-# ============================================================
-# INVOKE REPORT AGENT
-# ============================================================
-
-result = report_agent.invoke(
-    {
+    return {
         "messages": [
             {
                 "role": "user",
                 "content": f"""
-Generate the final Startup Validation Report.
-
 Startup Idea:
 
 {idea}
 
-Specialist Analysis:
-
-{json.dumps(specialist_analysis, indent=4)}
-
-Evaluate the startup using the supplied
-specialist analyses.
+{instruction}
 
 Return ONLY valid JSON.
-
-Do not explain.
-Do not summarize.
 Do not use markdown.
-Do not add text before or after the JSON.
+Do not add explanations.
 """
             }
         ]
     }
-)
 
 
 # ============================================================
-# GET RESPONSE
+# RUN SPECIALIST AGENTS
 # ============================================================
 
-response = result["messages"][-1].content
+print("\n========================================")
+print("       RUNNING STARTUP ANALYSES")
+print("========================================")
 
-if isinstance(response, list):
-    response = response[0]["text"]
 
-
-# ============================================================
-# PARSE REPORT
-# ============================================================
+# ------------------------------------------------------------
+# COMPETITOR
+# ------------------------------------------------------------
 
 try:
 
-    report = json.loads(response)
+    competitor_result = run_with_fallback(
+        competitor_agent,
+        create_payload(
+            "Perform competitor analysis."
+        ),
+        require_json=True
+    )
 
-except json.JSONDecodeError:
+    competitor_analysis = json.loads(
+        competitor_result
+    )
 
-    print("\nReport Agent did not return valid JSON.")
-    print(response)
-    sys.exit(1)
+    print("✓ Competitor Analysis completed")
+
+except Exception:
+
+    competitor_analysis = None
+
+    print("✗ Competitor Analysis failed")
+
+
+# ------------------------------------------------------------
+# MARKET
+# ------------------------------------------------------------
+
+try:
+
+    market_result = run_with_fallback(
+        market_agent,
+        create_payload(
+            "Perform market analysis."
+        ),
+        require_json=True
+    )
+
+    market_analysis = json.loads(
+        market_result
+    )
+
+    print("✓ Market Analysis completed")
+
+except Exception:
+
+    market_analysis = None
+
+    print("✗ Market Analysis failed")
+
+
+# ------------------------------------------------------------
+# SWOT
+# ------------------------------------------------------------
+
+try:
+
+    swot_result = run_with_fallback(
+        swot_agent,
+        create_payload(
+            "Perform SWOT and risk analysis."
+        ),
+        require_json=True
+    )
+
+    swot_analysis = json.loads(
+        swot_result
+    )
+
+    print("✓ SWOT Analysis completed")
+
+except Exception:
+
+    swot_analysis = None
+
+    print("✗ SWOT Analysis failed")
+
+
+# ------------------------------------------------------------
+# MVP
+# ------------------------------------------------------------
+
+try:
+
+    mvp_result = run_with_fallback(
+        mvp_agent,
+        create_payload(
+            "Design a practical MVP."
+        ),
+        require_json=True
+    )
+
+    mvp_analysis = json.loads(
+        mvp_result
+    )
+
+    print("✓ MVP Analysis completed")
+
+except Exception:
+
+    mvp_analysis = None
+
+    print("✗ MVP Analysis failed")
+
+
+# ------------------------------------------------------------
+# GTM
+# ------------------------------------------------------------
+
+try:
+
+    gtm_result = run_with_fallback(
+        gtm_agent,
+        create_payload(
+            "Create a concise Go-To-Market strategy."
+        ),
+        require_json=True
+    )
+
+    gtm_analysis = json.loads(
+        gtm_result
+    )
+
+    print("✓ GTM Analysis completed")
+
+except Exception:
+
+    gtm_analysis = None
+
+    print("✗ GTM Analysis failed")
 
 
 # ============================================================
-# PRINT JSON
+# BUILD SHARED STATE
 # ============================================================
 
-print("\n========== FINAL VALIDATION REPORT ==========\n")
+shared_state = {
+
+    "startup_idea": idea,
+
+    "competitor_analysis":
+        competitor_analysis,
+
+    "market_analysis":
+        market_analysis,
+
+    "swot_analysis":
+        swot_analysis,
+
+    "mvp_analysis":
+        mvp_analysis,
+
+    "gtm_analysis":
+        gtm_analysis
+}
+
+
+# ============================================================
+# DISPLAY SHARED STATE STATUS
+# ============================================================
+
+print("\n========================================")
+print("          SHARED STATE READY")
+print("========================================")
 
 print(
     json.dumps(
-        report,
+        shared_state,
         indent=4
     )
 )
 
 
 # ============================================================
-# GENERATE PDF
+# REPORT AGENT
 # ============================================================
 
-output_path = Path(
-    __file__
-).resolve().parents[2] / "startup_validation_report.pdf"
+print("\n========================================")
+print("          RUNNING REPORT AGENT")
+print("========================================")
 
 
-generate_report_pdf(
-    report,
-    str(output_path)
-)
+try:
+
+    report_result = run_with_fallback(
+        report_agent,
+        {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": f"""
+Create the final startup validation report
+using the following completed shared state.
+
+SHARED STATE:
+
+{json.dumps(shared_state, indent=4)}
+
+Evaluate the startup based on all available analyses.
+
+Return ONLY valid JSON.
+"""
+                }
+            ]
+        },
+        require_json=True
+    )
 
 
-# ============================================================
-# SUCCESS MESSAGE
-# ============================================================
+    # --------------------------------------------------------
+    # VALIDATE JSON
+    # --------------------------------------------------------
 
-print("\n============================================")
-print("PDF REPORT GENERATED SUCCESSFULLY")
-print("============================================")
+    final_report = json.loads(
+        report_result
+    )
 
-print(
-    f"\nPDF Location:\n{output_path}"
-)
+
+    # ========================================================
+    # FINAL OUTPUT
+    # ========================================================
+
+    print("\n========================================")
+    print("       FINAL VALIDATION REPORT")
+    print("========================================")
+
+    print(
+        json.dumps(
+            final_report,
+            indent=4
+        )
+    )
+
+
+except Exception:
+
+    print("\n========================================")
+    print("       REPORT AGENT FAILED")
+    print("========================================")
+
+    print(
+        "report_agent could not complete the request."
+    )
