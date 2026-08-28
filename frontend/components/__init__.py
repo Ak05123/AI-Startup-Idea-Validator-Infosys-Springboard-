@@ -1,0 +1,1 @@
+"""UI components package for the AI Startup Validator frontend."""
