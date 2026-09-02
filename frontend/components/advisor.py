@@ -24,6 +24,48 @@ EXAMPLE_QUESTIONS = [
 ]
 
 
+RECOMMENDATION_PROMPT = (
+    "Based on my completed startup validation results, give me a clear, "
+    "practical recommendation: should I proceed with this startup idea, "
+    "proceed with caution, or reconsider it? Explain why using the "
+    "existing validation data, and list the most important next steps."
+)
+
+
+def _append_message(role: str, content: str) -> None:
+    """Append one message to the persistent chat history."""
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+    st.session_state.chat_history.append({"role": role, "content": content})
+
+
+def _ask_backend(question: str) -> str:
+    """
+    Send a question to the existing advisor, including the current
+    conversation history (excluding the question itself). Returns the
+    advisor's answer text or an error message.
+    """
+    import api_client
+
+    response = st.session_state.validation_response
+    history = [
+        m for m in st.session_state.get("chat_history", [])
+        if m.get("content")
+    ]
+
+    try:
+        data = api_client.ask_advisor(
+            question,
+            response,
+            conversation_history=history,
+        )
+        return data.get("answer", "") or "The advisor returned an empty answer."
+    except api_client.BackendError as exc:
+        return f"⚠️ {exc}"
+    except Exception as exc:
+        return f"⚠️ Unexpected error while contacting the advisor: {exc}"
+
+
 # ------------------------------------------------------------------
 # Render
 # ------------------------------------------------------------------
@@ -60,51 +102,50 @@ def render_advisor() -> None:
 
     st.markdown("---")
 
-    # Example questions
-    st.markdown("**Try asking:**")
-    cols = st.columns(2)
-    for i, question in enumerate(EXAMPLE_QUESTIONS):
-        col = cols[i % 2]
-        with col:
-            if st.button(question, key=f"example_q_{i}", use_container_width=True):
-                st.session_state.advisor_question = question
-                st.rerun()
+    # Example questions (only before the conversation starts)
+    chat_history = st.session_state.get("chat_history", [])
+    if not chat_history:
+        st.markdown("**Try asking:**")
+        cols = st.columns(2)
+        for i, question in enumerate(EXAMPLE_QUESTIONS):
+            col = cols[i % 2]
+            with col:
+                if st.button(question, key=f"example_q_{i}", use_container_width=True):
+                    st.session_state.pending_question = question
+                    st.rerun()
 
-    st.markdown("---")
-
-    # Chat input
-    question = st.text_input(
-        "Ask a question about your validation",
-        value=st.session_state.get("advisor_question", ""),
-        placeholder="e.g. What are my biggest risks?",
-        key="advisor_input",
-    )
-
-    if st.button("Ask Advisor", type="primary", use_container_width=True):
-        if not question.strip():
-            st.warning("Please enter a question.")
+    # Render the full conversation (persists across Streamlit reruns)
+    for message in chat_history:
+        if message.get("role") == "user":
+            with st.chat_message("user"):
+                st.markdown(message.get("content", ""))
         else:
-            st.session_state.advisor_question = question.strip()
-            try:
-                import api_client
-                data = api_client.ask_advisor(
-                    question.strip(),
-                    st.session_state.validation_response,
-                )
-                st.session_state.advisor_answer = data.get("answer", "")
-                st.session_state.advisor_error = None
-            except Exception as exc:
-                st.session_state.advisor_answer = None
-                st.session_state.advisor_error = str(exc)
-            st.rerun()
+            with st.chat_message("assistant"):
+                st.markdown(message.get("content", ""))
 
-    # Show errors from the last request
-    advisor_error = st.session_state.get("advisor_error")
-    if advisor_error:
-        st.error(advisor_error)
+    # Recommendation button — uses ONLY the existing validation results
+    if st.button(
+        "💡 Get Recommendation",
+        type="secondary",
+        use_container_width=True,
+    ):
+        st.session_state.pending_question = RECOMMENDATION_PROMPT
+        st.rerun()
 
-    # Show answer if available
-    answer = st.session_state.get("advisor_answer")
-    if answer:
-        st.markdown("### Answer")
-        ui.render_card("AI Advisor", answer)
+    # Chat input — previous conversation stays visible above it
+    question = st.chat_input("Ask a question about your validation...")
+
+    pending = st.session_state.pop("pending_question", None) or question
+    if not pending or not pending.strip():
+        return
+
+    pending = pending.strip()
+
+    # Add the user message, get the answer, add it — both appended to
+    # session state so the full conversation survives Streamlit reruns.
+    _append_message("user", pending)
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            answer = _ask_backend(pending)
+    _append_message("assistant", answer)
+    st.rerun()

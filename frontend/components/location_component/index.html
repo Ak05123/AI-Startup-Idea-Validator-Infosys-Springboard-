@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+  <body>
+    <script>
+      // Minimal Streamlit custom component bridge (no external libs).
+      function send(type, value) {
+        // Streamlit's host-side message handler reads apiVersion/height at the
+        // TOP LEVEL of the postMessage data object (not inside `value`).
+        var msg = { isStreamlitMessage: true, type: type };
+        if (value) {
+          for (var k in value) msg[k] = value[k];
+        }
+        window.parent.postMessage(msg, "*");
+      }
+
+      // Announce readiness so Streamlit knows the component exists.
+      // apiVersion MUST be top-level in this message; omitting it causes
+      // "Unrecognized component API version: 'undefined'".
+      send("streamlit:componentReady", { apiVersion: 1 });
+      send("streamlit:setFrameHeight", { height: 0 });
+
+      // Resolve only once Streamlit actually asks the component to
+      // render (the host sends streamlit:render). Sending values earlier
+      // would arrive before the widget is registered host-side.
+      var started = false;
+      window.addEventListener("message", function (event) {
+        var d = event.data;
+        if (d && d.type === "streamlit:render" && !started) {
+          started = true;
+          resolveLocation();
+        }
+      });
+
+      function sendValue(obj) {
+        // value + dataType are read from the top-level message object.
+        window.parent.postMessage(
+          { isStreamlitMessage: true, type: "streamlit:setComponentValue",
+            value: obj, dataType: "json" },
+          "*"
+        );
+      }
+
+      function resolveLocation() {
+        if (!navigator.geolocation) {
+          sendValue({ error: "not_supported" });
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          function (pos) {
+            // Reverse geocode to city/locality level only. Precise
+            // coordinates are NOT stored or sent beyond this lookup.
+            var url =
+              "https://nominatim.openstreetmap.org/reverse?format=json" +
+              "&lat=" + pos.coords.latitude +
+              "&lon=" + pos.coords.longitude +
+              "&zoom=10&addressdetails=1";
+            fetch(url)
+              .then(function (r) { return r.json(); })
+              .then(function (data) {
+                var a = (data && data.address) || {};
+                var loc =
+                  a.city || a.town || a.village || a.county ||
+                  a.state_district || a.state || "";
+                if (loc) {
+                  sendValue({ location: loc });
+                } else {
+                  sendValue({ error: "geocode_failed" });
+                }
+              })
+              .catch(function () {
+                sendValue({ error: "geocode_failed" });
+              });
+          },
+          function () {
+            sendValue({ error: "permission_denied" });
+          },
+          { timeout: 15000 }
+        );
+      }
+
+    </script>
+  </body>
+</html>

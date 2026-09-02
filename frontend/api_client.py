@@ -65,6 +65,7 @@ def build_validate_payload(
     location: str = "",
     budget: str = "",
     industry: str = "",
+    currency: str = "",
 ) -> str:
     """
     Compose the startup idea text from the form inputs.
@@ -81,7 +82,10 @@ def build_validate_payload(
     if location:
         meta.append(f"Location: {location}")
     if budget:
-        meta.append(f"Budget: {budget} USD")
+        # Currency is country-aware (India -> INR, USA -> USD, ...).
+        # No currency code is appended when the country is unknown/empty —
+        # the amount must never be silently labelled USD.
+        meta.append(f"Budget: {budget} {currency}" if currency else f"Budget: {budget}")
     if meta:
         parts.append("(" + "; ".join(meta) + ")")
     return "\n".join(parts)
@@ -93,12 +97,15 @@ def validate_startup(
     location: str = "",
     budget: str = "",
     industry: str = "",
+    currency: str = "",
 ) -> dict:
     """
     Run the EXISTING validation pipeline directly and return the
     shared_state dict it produces (unchanged shape).
     """
-    composed_idea = build_validate_payload(idea, country, location, budget, industry)
+    composed_idea = build_validate_payload(
+        idea, country, location, budget, industry, currency
+    )
     try:
         return _get_orchestrator()(composed_idea)
     except BackendError:
@@ -107,7 +114,11 @@ def validate_startup(
         raise BackendError(f"The validation pipeline failed: {exc}") from exc
 
 
-def ask_advisor(question: str, validation_response: dict | None = None) -> dict:
+def ask_advisor(
+    question: str,
+    validation_response: dict | None = None,
+    conversation_history: list | None = None,
+) -> dict:
     """
     Ask the EXISTING conversational advisor a question about the
     completed validation. Normal request/response â€” no streaming.
@@ -119,7 +130,11 @@ def ask_advisor(question: str, validation_response: dict | None = None) -> dict:
 
     advisor_fn = _get_advisor()
     try:
-        raw = advisor_fn(question, validation_response)
+        raw = advisor_fn(
+            question,
+            validation_response,
+            conversation_history=conversation_history or [],
+        )
     except Exception as exc:
         raise BackendError(f"The advisor failed: {exc}") from exc
 

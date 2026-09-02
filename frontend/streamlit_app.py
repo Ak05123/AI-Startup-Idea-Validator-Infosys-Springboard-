@@ -48,7 +48,8 @@ DEFAULT_INPUTS = {
     "country": "",
     "location": "",
     "budget": 0,
-    "industry": "TravelTech",
+    "industry": "Select Industry",
+    "currency": "",
 }
 
 for key, value in DEFAULT_INPUTS.items():
@@ -91,6 +92,7 @@ def _run_validation():
             location=data["location"],
             budget=str(data["budget"]) if data["budget"] else "",
             industry=data["industry"],
+            currency=data.get("currency", ""),
         )
         st.session_state.validation_response = response
         st.session_state.validation_status = "success"
