@@ -2,7 +2,6 @@ import sys
 from pathlib import Path
 import json
 
-
 # ============================================================
 # PATH SETUP
 # ============================================================
@@ -11,14 +10,12 @@ sys.path.append(
     str(Path(__file__).resolve().parents[1])
 )
 
-
 # ============================================================
 # IMPORTS
 # ============================================================
 
 from deepagents import create_deep_agent
 from app.config import gemini_models
-
 
 # ============================================================
 # EXTRACT RESPONSE
@@ -71,7 +68,6 @@ def clean_json_response(response):
 
     response = response.strip()
 
-
     # --------------------------------------------------------
     # Remove ```json ... ```
     # --------------------------------------------------------
@@ -88,7 +84,6 @@ def clean_json_response(response):
                 :-3
             ].strip()
 
-
     # --------------------------------------------------------
     # Remove ``` ... ```
     # --------------------------------------------------------
@@ -104,7 +99,6 @@ def clean_json_response(response):
             response = response[
                 :-3
             ].strip()
-
 
     # --------------------------------------------------------
     # Validate JSON
@@ -168,8 +162,8 @@ def run_with_fallback(
             ↓ failure
         FINAL ERROR
 
-    API errors are handled internally
-    and are NOT printed to the user.
+    Errors are printed temporarily for
+    deployment debugging.
 
     If require_json=True, an invalid JSON
     response is treated as a failure and
@@ -182,7 +176,6 @@ def run_with_fallback(
     )
 
     last_error = None
-
 
     # ========================================================
     # TRY ALL FOUR MODELS
@@ -201,7 +194,6 @@ def run_with_fallback(
                 model
             )
 
-
             # ------------------------------------------------
             # INVOKE DEEP AGENT
             # ------------------------------------------------
@@ -210,7 +202,6 @@ def run_with_fallback(
                 payload
             )
 
-
             # ------------------------------------------------
             # EXTRACT RESPONSE
             # ------------------------------------------------
@@ -218,7 +209,6 @@ def run_with_fallback(
             response = extract_response(
                 result
             )
-
 
             # ------------------------------------------------
             # VALIDATE JSON
@@ -230,31 +220,35 @@ def run_with_fallback(
                     response
                 )
 
-
             # ------------------------------------------------
             # SUCCESS
             # ------------------------------------------------
 
             return response
 
-
         except Exception as error:
 
             # ------------------------------------------------
-            # STORE ERROR INTERNALLY
+            # STORE ERROR
             # ------------------------------------------------
 
             last_error = error
 
+            # ------------------------------------------------
+            # TEMPORARILY PRINT ACTUAL ERROR
+            # ------------------------------------------------
+
+            print(
+                f"\n{agent_name} ERROR: "
+                f"{type(error).__name__}: "
+                f"{error}"
+            )
 
             # ------------------------------------------------
-            # DO NOT PRINT ERROR
-            #
-            # Automatically try next model.
+            # TRY NEXT MODEL
             # ------------------------------------------------
 
             continue
-
 
     # ========================================================
     # ALL FOUR MODELS FAILED
