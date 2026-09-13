@@ -254,6 +254,9 @@ def run_with_fallback(
     # ALL FOUR MODELS FAILED
     # ========================================================
 
+    if last_error is not None:
+        raise last_error
+
     raise RuntimeError(
         f"{agent_name} could not complete the request."
-    ) from last_error
+    )
