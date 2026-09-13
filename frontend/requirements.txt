@@ -2,3 +2,4 @@ streamlit
 reportlab
 deepagents
 python-dotenv
+ddgs
