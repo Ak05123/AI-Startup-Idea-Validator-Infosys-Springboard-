@@ -39,15 +39,14 @@ def run_agent(
     """
     Run one agent using the centralized fallback.
 
-    API errors are hidden from the terminal.
+    Errors are printed so the actual problem can be
+    diagnosed during deployment.
     """
 
     try:
 
         result = run_with_fallback(
-
             agent,
-
             {
                 "messages": [
                     {
@@ -66,13 +65,17 @@ Do not add explanations.
                     }
                 ]
             },
-
             require_json=True
         )
 
         return json.loads(result)
 
-    except Exception:
+    except Exception as error:
+
+        print(
+            f"\nAGENT ERROR: "
+            f"{type(error).__name__}: {error}"
+        )
 
         return None
 
@@ -340,13 +343,16 @@ Return ONLY valid JSON.
         print("      [OK] Completed")
 
 
-    except Exception:
+    except Exception as error:
 
         shared_state["report_status"] = {
             "status": "failed"
         }
 
-        print("      [WARN] Unavailable")
+        print(
+            f"      [REPORT ERROR] "
+            f"{type(error).__name__}: {error}"
+        )
 
 
     # ========================================================
@@ -413,13 +419,16 @@ Return ONLY valid JSON.
         print("      [OK] PDF Generated")
 
 
-    except Exception:
+    except Exception as error:
 
         shared_state["pdf_status"] = {
             "status": "failed"
         }
 
-        print("      [WARN] PDF generation failed")
+        print(
+            f"      [PDF ERROR] "
+            f"{type(error).__name__}: {error}"
+        )
 
 
     # ========================================================
@@ -504,35 +513,42 @@ if __name__ == "__main__":
 
     print("\nAgent Status:")
 
+
     print(
         "  Competitor : "
         + shared_state["competitor_status"]["status"]
     )
+
 
     print(
         "  Market     : "
         + shared_state["market_status"]["status"]
     )
 
+
     print(
         "  SWOT       : "
         + shared_state["swot_status"]["status"]
     )
+
 
     print(
         "  MVP        : "
         + shared_state["mvp_status"]["status"]
     )
 
+
     print(
         "  GTM        : "
         + shared_state["gtm_status"]["status"]
     )
 
+
     print(
         "  Report     : "
         + shared_state["report_status"]["status"]
     )
+
 
     print(
         "  PDF        : "
@@ -568,10 +584,10 @@ if __name__ == "__main__":
         print("        FINAL VALIDATION REPORT")
         print("========================================")
 
+
         print(
             json.dumps(
                 shared_state["final_report"],
                 indent=4
             )
         )
-        
