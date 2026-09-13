@@ -39,8 +39,8 @@ def run_agent(
     """
     Run one agent using the centralized fallback.
 
-    Errors are printed so the actual problem can be
-    diagnosed during deployment.
+    Errors are printed and re-raised so the actual
+    problem can be diagnosed during deployment.
     """
 
     try:
@@ -73,11 +73,26 @@ Do not add explanations.
     except Exception as error:
 
         print(
-            f"\nAGENT ERROR: "
-            f"{type(error).__name__}: {error}"
+            f"\n========== AGENT ERROR =========="
         )
 
-        return None
+        print(
+            f"Agent: {agent.get('name', 'unknown')}"
+        )
+
+        print(
+            f"Error Type: {type(error).__name__}"
+        )
+
+        print(
+            f"Error: {error}"
+        )
+
+        print(
+            f"=================================\n"
+        )
+
+        raise
 
 
 # ============================================================
